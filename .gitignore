@@ -1,0 +1,10 @@
+# AGENTS
+AGENTS.md
+CLAUDE.md
+
+# env
+.env
+!.env.example
+
+# cache（scripts/fetch-videos.sh で再取得できる）
+data/cache/
