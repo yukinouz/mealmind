@@ -159,3 +159,7 @@ scripts/pick-recipe.sh 鶏むね --skip <動画IDまたはURL>   # スキップ�
 
 - コミットメッセージは [Conventional Commits](https://www.conventionalcommits.org/ja/v1.0.0/) に従います
 - API キーは `.env` にだけ置き、コマンドやログに出しません（[ADR-0004](docs/adr/0004-APIキーは承認済みスクリプトだけで使う.md)）
+
+## ライセンス
+
+[MIT](LICENSE)
