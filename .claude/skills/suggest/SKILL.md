@@ -104,8 +104,6 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 }
 ```
 
-お気に入りにするかは聞きません。ユーザーから頼まれたときだけ `isFavorite` を `true` にします。
-
 ### excluded.json
 
 ```json
