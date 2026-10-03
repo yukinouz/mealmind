@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "avoidIngredients": ["レバー", "パクチー"],
+  "avoidSeasonings": ["カルダモン"],
+  "avoidTitleKeywords": ["ケーキ", "プリン"],
+  "genres": {
+    "noodles": ["パスタ", "麺", "そば", "うどん"],
+    "bread": ["食パン", "トースト"]
+  },
+  "meals": {
+    "lunch": { "onlyGenres": ["noodles", "bread"] },
+    "dinner": { "avoidGenres": ["noodles", "bread"], "avoidTitleKeywords": [] }
+  }
+}

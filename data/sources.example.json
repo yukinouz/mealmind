@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "ryuji",
+      "type": "youtube",
+      "name": "料理研究家リュウジのバズレシピ",
+      "handle": "@ryuji825",
+      "channelId": "UCW01sMEVYQdhcvkrhbxdBpw",
+      "weight": 90,
+      "isEnabled": true
+    },
+    {
+      "id": "kurashiru",
+      "type": "kurashiru",
+      "name": "クラシル",
+      "url": "https://www.kurashiru.com",
+      "weight": 10,
+      "isEnabled": true
+    }
+  ]
+}

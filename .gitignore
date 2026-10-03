@@ -10,6 +10,7 @@ CLAUDE.md
 data/cache/
 
 # 個人データ（公開リポジトリのため記録しない）
+data/sources.json
 data/preferences.json
 data/preferences.md
 data/recipes.json
