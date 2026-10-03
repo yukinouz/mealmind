@@ -16,6 +16,7 @@
 # 出力（type で分岐する）:
 #   youtube   … 候補の動画（タイトル・URL・概要欄など）
 #   kurashiru … クラシルが選ばれた（サイトでの検索は呼び出し側が行う）
+#               検索に使う言葉（キーワードかジャンルの言葉）がないときは、クラシルを抽選しない
 #   none      … 条件に合う候補がない
 set -euo pipefail
 
@@ -178,5 +179,7 @@ jq -n \
           end
       end;
 
-    try_sources($sources.sources | map(select(.isEnabled != false) | . + {w: .weight}); 0)
+    # クラシルはトップページから個別レシピを取れないので、検索に使う言葉がなければ外す
+    (($keywords | length) > 0 or ($onlyTitles | length) > 0) as $canSearchKurashiru
+    | try_sources($sources.sources | map(select(.isEnabled != false and (.type != "kurashiru" or $canSearchKurashiru)) | . + {w: .weight}); 0)
   ' ${cache_files[@]+"${cache_files[@]}"} </dev/null

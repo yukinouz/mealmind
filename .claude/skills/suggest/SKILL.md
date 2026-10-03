@@ -45,7 +45,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 
 1. WebFetch で検索結果を取得し、レシピを数件（タイトルと `/recipes/<id>` の URL）得る
    - キーワードあり：`https://www.kurashiru.com/search?query=<キーワード>`
-   - キーワードなし：出力の `onlyTitleKeywords` が空でなければ、そこから乱数で1つ選んで検索する（例：「チャーハン」）。空なら `data/preferences.json` の `frequentIngredients` から1つ選んで検索し、それも空なら `https://www.kurashiru.com/` のおすすめを使う
+   - キーワードなし：出力の `onlyTitleKeywords` から乱数で1つ選んで検索する（例：「チャーハン」）。どちらもないときはスクリプトがクラシルを選ばない
 2. 次のレシピを除き、残りから乱数で1件選ぶ（例：`echo $(( $(od -An -N2 -tu2 /dev/urandom) % <件数> + 1 ))`）
    - `data/excluded.json` にある URL、この会話でスキップした URL
    - タイトルに、出力の `avoidTitleKeywords` のどれかを含むもの
