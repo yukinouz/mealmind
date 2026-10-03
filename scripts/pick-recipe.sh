@@ -72,6 +72,9 @@ jq -n \
   def amount_pattern:
     "大さじ|小さじ|適量|少々|ひとつまみ|[0-9０-９./]+\\s*(g|ｇ|ml|ｍｌ|cc|ｃｃ|個|本|枚|片|かけ|パック|株|束|合)";
 
+  # ショート動画は最長3分。長尺動画の切り抜きなので候補から外す
+  def short_max_seconds: 180;
+
   def video_url: "https://www.youtube.com/watch?v=" + .;
 
   # 重み .w に従って1件選ぶ（$r は 0以上1未満の乱数）
@@ -100,6 +103,7 @@ jq -n \
           | (.videoId | video_url) as $url
           | $recipeByUrl[$url] as $recipe
           | select(([.description | scan(amount_pattern)] | length) >= 3)
+          | select((.durationSeconds // (short_max_seconds + 1)) > short_max_seconds)
           | select(all($keywords[]; . as $k | $text | contains($k)))
           | select(any($avoids[]; . as $a | $text | contains($a)) | not)
           | select($isExcluded[$url] | not)
