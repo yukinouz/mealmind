@@ -10,7 +10,8 @@
 # - ショート動画を見分けるため、動画ごとの長さ（秒）も取得する
 set -euo pipefail
 
-readonly ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+readonly ROOT_DIR
 readonly SOURCES_FILE="$ROOT_DIR/data/sources.json"
 readonly CACHE_DIR="$ROOT_DIR/data/cache"
 readonly PLAYLIST_API_URL="https://www.googleapis.com/youtube/v3/playlistItems"
