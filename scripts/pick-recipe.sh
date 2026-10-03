@@ -86,9 +86,9 @@ jq -n \
         end)
     | .chosen // $items[-1];
 
-  ($settings.cookedRecipeWeight // 0.2) as $cookedWeight
+  ($settings.chosenRecipeWeight // 0.2) as $chosenWeight
   | ($settings.favoriteRecipeWeight // 0.5) as $favoriteWeight
-  | ((now - ($settings.recentlyCookedDays // 14) * 86400) | strflocaltime("%Y-%m-%d")) as $recentSince
+  | ((now - ($settings.resuggestAfterDays // 14) * 86400) | strflocaltime("%Y-%m-%d")) as $recentSince
   | (($prefs.avoidIngredients // []) + ($prefs.avoidSeasonings // [])) as $avoids
   | ($recipes.recipes | map({key: .url, value: .}) | from_entries) as $recipeByUrl
   | ($excluded.excluded | map({key: .url, value: true}) | from_entries) as $isExcluded
@@ -108,11 +108,11 @@ jq -n \
           | select(any($avoids[]; . as $a | $text | contains($a)) | not)
           | select($isExcluded[$url] | not)
           | select($skipUrls | index($url) | not)
-          | select($recipe == null or ([$recipe.cookedDates[]? | select(. >= $recentSince)] | length) == 0)
+          | select($recipe == null or ([$recipe.chosenDates[]? | select(. >= $recentSince)] | length) == 0)
           | . + {
               url: $url,
-              status: (if $recipe == null then "new" elif $recipe.isFavorite then "favorite" else "cooked" end),
-              w: (if $recipe == null then 1 elif $recipe.isFavorite then $favoriteWeight else $cookedWeight end)
+              status: (if $recipe == null then "new" elif $recipe.isFavorite then "favorite" else "chosen" end),
+              w: (if $recipe == null then 1 elif $recipe.isFavorite then $favoriteWeight else $chosenWeight end)
             }
         )
       | map(select(.w > 0));

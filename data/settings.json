@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cookedRecipeWeight": 0.2,
+  "chosenRecipeWeight": 0.2,
   "favoriteRecipeWeight": 0.5,
-  "recentlyCookedDays": 14
+  "resuggestAfterDays": 14
 }
