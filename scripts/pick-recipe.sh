@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # 提案するレシピを1件だけ抽選して JSON で出力する。
 #
-# 使い方: scripts/pick-recipe.sh [キーワード ...] [--skip 動画IDまたはURL ...]
+# 使い方: scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDまたはURL ...]
 #   例:   scripts/pick-recipe.sh
 #         scripts/pick-recipe.sh 鯖 味噌
+#         scripts/pick-recipe.sh --meal lunch
 #         scripts/pick-recipe.sh 鶏むね --skip abc123 --skip def456
 #
 # - キーワードが複数あるときは、すべてを含む動画だけが候補になる
+# - --meal は preferences.json の meals のキー（省略時は dinner）。その食事の条件をタイトルに当てる
+#     onlyGenres  … このジャンルの言葉をどれか含む動画だけを候補にする
+#     avoidGenres / avoidTitleKeywords … これらの言葉を含む動画を外す
 # - --skip はこの会話でスキップした動画（何度でも指定できる）
 #
 # 出力（type で分岐する）:
@@ -22,8 +26,14 @@ readonly CACHE_DIR="$DATA_DIR/cache"
 # 引数をキーワードとスキップ対象に分ける
 keywords=()
 skips=()
+meal="dinner"
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --meal)
+      [[ $# -lt 2 ]] && { echo "エラー: --meal の後に食事（dinner など）を指定してください" >&2; exit 1; }
+      meal="$2"
+      shift 2
+      ;;
     --skip)
       [[ $# -lt 2 ]] && { echo "エラー: --skip の後に動画IDかURLを指定してください" >&2; exit 1; }
       skips+=("$2")
@@ -50,6 +60,21 @@ read_json() {
   if [[ -f "$1" ]]; then cat "$1"; else echo "$2"; fi
 }
 
+prefs="$(read_json "$DATA_DIR/preferences.json" '{}')"
+
+# meals が登録されているのに、その食事がなければ打ち間違いとしてエラーにする
+if ! jq -e --arg meal "$meal" '(.meals // {}) | length == 0 or has($meal)' <<<"$prefs" >/dev/null; then
+  echo "エラー: 食事「${meal}」は preferences.json の meals にありません" >&2
+  exit 1
+fi
+
+# meals で使うジャンルが genres になければ、打ち間違いとしてエラーにする
+unknown_genres="$(jq -r '(.genres // {}) as $g | [.meals[]? | (.onlyGenres // []) + (.avoidGenres // []) | .[] | select($g[.] == null)] | unique | join(", ")' <<<"$prefs")"
+if [[ -n "$unknown_genres" ]]; then
+  echo "エラー: ジャンル「${unknown_genres}」は preferences.json の genres にありません" >&2
+  exit 1
+fi
+
 # 抽選用の乱数（0以上1未満）をまとめて作る。jq には乱数を作る機能がないため
 seed="$(od -An -N4 -tu4 /dev/urandom | tr -d ' ')"
 randoms="$(awk -v seed="$seed" 'BEGIN { srand(seed); printf "["; for (i = 0; i < 100; i++) printf "%s%f", (i ? "," : ""), rand(); print "]" }')"
@@ -61,7 +86,8 @@ shopt -u nullglob
 jq -n \
   --argjson sources "$(read_json "$DATA_DIR/sources.json" '{"sources":[]}')" \
   --argjson settings "$(read_json "$DATA_DIR/settings.json" '{}')" \
-  --argjson prefs "$(read_json "$DATA_DIR/preferences.json" '{}')" \
+  --argjson prefs "$prefs" \
+  --arg meal "$meal" \
   --argjson recipes "$(read_json "$DATA_DIR/recipes.json" '{"recipes":[]}')" \
   --argjson excluded "$(read_json "$DATA_DIR/excluded.json" '{"excluded":[]}')" \
   --argjson keywords "$(to_json_array ${keywords[@]+"${keywords[@]}"})" \
@@ -90,6 +116,10 @@ jq -n \
   | ($settings.favoriteRecipeWeight // 0.5) as $favoriteWeight
   | ((now - ($settings.resuggestAfterDays // 14) * 86400) | strflocaltime("%Y-%m-%d")) as $recentSince
   | (($prefs.avoidIngredients // []) + ($prefs.avoidSeasonings // [])) as $avoids
+  | ($prefs.meals[$meal] // {}) as $mealPrefs
+  | def genre_keywords($names): [$names[] | $prefs.genres[.][]];
+  (($prefs.avoidTitleKeywords // []) + ($mealPrefs.avoidTitleKeywords // []) + genre_keywords($mealPrefs.avoidGenres // [])) as $avoidTitles
+  | genre_keywords($mealPrefs.onlyGenres // []) as $onlyTitles
   | ($recipes.recipes | map({key: .url, value: .}) | from_entries) as $recipeByUrl
   | ($excluded.excluded | map({key: .url, value: true}) | from_entries) as $isExcluded
   | ($skips | map(if startswith("http") then . else video_url end)) as $skipUrls
@@ -106,6 +136,8 @@ jq -n \
           | select((.durationSeconds // (short_max_seconds + 1)) > short_max_seconds)
           | select(all($keywords[]; . as $k | $text | contains($k)))
           | select(any($avoids[]; . as $a | $text | contains($a)) | not)
+          | .title as $title | select(any($avoidTitles[]; . as $a | $title | contains($a)) | not)
+          | select(($onlyTitles | length) == 0 or any($onlyTitles[]; . as $o | $title | contains($o)))
           | select($isExcluded[$url] | not)
           | select($skipUrls | index($url) | not)
           | select($recipe == null or ([$recipe.chosenDates[]? | select(. >= $recentSince)] | length) == 0)
@@ -123,7 +155,7 @@ jq -n \
       else
         pick_weighted($remaining; $randoms[$i]) as $source
         | if $source.type == "kurashiru" then
-            {type: "kurashiru", sourceId: $source.id, channelName: $source.name, siteUrl: $source.url, keywords: $keywords}
+            {type: "kurashiru", sourceId: $source.id, channelName: $source.name, siteUrl: $source.url, keywords: $keywords, meal: $meal, avoidTitleKeywords: $avoidTitles, onlyTitleKeywords: $onlyTitles}
           else
             candidates($source) as $cands
             | if ($cands | length) == 0 then try_sources($remaining - [$source]; $i + 2)
@@ -131,6 +163,7 @@ jq -n \
                 pick_weighted($cands; $randoms[$i + 1]) as $video
                 | {
                     type: "youtube",
+                    meal: $meal,
                     sourceId: $source.id,
                     channelName: $source.name,
                     title: $video.title,
