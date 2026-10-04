@@ -1,0 +1,16 @@
+@use "sass:map";
+
+$breakpoint: (
+  xsm: 375px,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1280px,
+  xxl: 1440px,
+);
+
+:export {
+  @each $size, $value in $breakpoint {
+    #{$size}: $value;
+  }
+}

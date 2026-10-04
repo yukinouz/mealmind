@@ -1,0 +1,25 @@
+@use "responsive";
+
+%inner {
+  margin-inline: auto;
+
+  @include responsive.mq-max(md) {
+    padding-inline: 20px;
+  }
+
+  @include responsive.mq-min(md) {
+    padding-inline: 40px;
+  }
+}
+
+.inner {
+  @extend %inner;
+
+  @include responsive.mq-max(md) {
+    max-width: 600px;
+  }
+
+  @include responsive.mq-min(md) {
+    max-width: 1080px;
+  }
+}
