@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LinkButton } from "@/app/(pages)/components/linkButton/linkButton";
 import { RecipePicker } from "./recipe-picker";
 
 export default function Home() {
@@ -6,7 +6,7 @@ export default function Home() {
     <main>
       <h1>Welcome to Mealmind</h1>
       <p>
-        <Link href="/recipes">レシピ一覧</Link>
+        <LinkButton href="/recipes" text="レシピ一覧" />
       </p>
       <RecipePicker />
     </main>

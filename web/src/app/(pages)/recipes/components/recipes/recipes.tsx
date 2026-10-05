@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { connection } from "next/server";
+import { LinkButton } from "@/app/(pages)/components/linkButton/linkButton";
 import { type Meal, readRecipes, thumbnailUrlOf } from "@/lib/recipes";
 import { RecipeThumbnail } from "../../recipe-thumbnail";
-
 import styles from "./_styles/_recipes.module.scss";
 
 const MEAL_LABELS: Record<Meal, string> = {
@@ -40,9 +39,9 @@ const Recipes = async () => {
           ))}
         </ul>
       )}
-      <Link className={styles.linkButton} href="/">
-        トップへ戻る
-      </Link>
+      <div className={styles.buttonWrapper}>
+        <LinkButton href="/" text="トップへ戻る" />
+      </div>
     </>
   );
 };
