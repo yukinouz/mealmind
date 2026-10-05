@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { LinkButton } from "@/app/(pages)/components/linkButton/linkButton";
 import { type Meal, readRecipes, thumbnailUrlOf } from "@/lib/recipes";
+import { truncate } from "@/utils/truncate";
 import { RecipeThumbnail } from "../../recipe-thumbnail";
 import styles from "./_styles/_recipes.module.scss";
 
@@ -30,7 +31,7 @@ const Recipes = async () => {
                 <div className={styles.thumbnail}>
                   <RecipeThumbnail src={thumbnailUrlOf(recipe)} />
                 </div>
-                <p className={styles.title}>{recipe.title}</p>
+                <p className={styles.title}>{truncate(recipe.title)}</p>
               </a>
               <p className={styles.meals}>
                 {recipe.meals.map((meal) => MEAL_LABELS[meal]).join("・")}

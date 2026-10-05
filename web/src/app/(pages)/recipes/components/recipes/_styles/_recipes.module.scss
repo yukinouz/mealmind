@@ -44,13 +44,8 @@
   }
 }
 
-// 長いタイトルは2行で切る
 .title {
-  display: -webkit-box;
   font-weight: 700;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 
   @include responsive.mq-max(md) {
     font-size: 14px;
