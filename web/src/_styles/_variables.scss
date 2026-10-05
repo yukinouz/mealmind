@@ -1,0 +1,19 @@
+// color
+
+$color-black: #000;
+$color-white0: #fff;
+$color-gray: #666;
+$color-gray-light: #eee;
+
+$color-primary: #fa8d2e;
+$color-secondary: #8a6a55;
+$color-tertiary: #4f7a3a;
+$color-error: #b3261e;
+$color-surface: #fff8f3;
+$color-outline: #857369;
+
+// triangle
+$clipTriangleTop: polygon(50% 0, 100% 100%, 0 100%);
+$clipTriangleBottom: polygon(0 0, 100% 0, 50% 100%);
+$clipTriangleRight: polygon(0 0, 100% 50%, 0 100%);
+$clipTriangleLeft: polygon(0 50%, 100% 0, 100% 100%);

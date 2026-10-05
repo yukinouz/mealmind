@@ -1,0 +1,21 @@
+@use "responsive";
+@use "variables";
+
+.linkButton {
+  color: variables.$color-white0;
+  font-weight: 700;
+  background-color: variables.$color-primary;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  width: 280px;
+  height: 55px;
+  margin-inline: auto;
+  font-size: 16px;
+
+  @media (hover: hover) {
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}

@@ -1,0 +1,40 @@
+@use "sass:map";
+
+$xsm: 375px;
+$sm: 576px;
+$md: 768px;
+$lg: 992px;
+$xl: 1280px;
+$xxl: 1440px;
+
+// min-width
+$breakpoint-min: (
+  "xsm": "only screen and (width >= #{$xsm})",
+  "sm": "only screen and (width >= #{$sm})",
+  "md": "only screen and (width >= #{$md})",
+  "lg": "only screen and (width >= #{$lg})",
+  "xl": "only screen and (width >= #{$xl})",
+  "xxl": "only screen and (width >= #{$xxl})",
+) !default;
+
+// max-width
+$breakpoint-max: (
+  "xsm": "only screen and (width <= #{$xsm - 1px})",
+  "sm": "only screen and (width <= #{$sm - 1px})",
+  "md": "only screen and (width <= #{$md - 1px})",
+  "lg": "only screen and (width <= #{$lg - 1px})",
+  "xl": "only screen and (width <= #{$xl - 1px})",
+  "xxl": "only screen and (width <= #{$xxl - 1px})",
+) !default;
+
+@mixin mq-min($breakpoint: md) {
+  @media #{map.get($breakpoint-min, $breakpoint)} {
+    @content;
+  }
+}
+
+@mixin mq-max($breakpoint: md) {
+  @media #{map.get($breakpoint-max, $breakpoint)} {
+    @content;
+  }
+}

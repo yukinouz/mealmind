@@ -1,0 +1,13 @@
+@use "responsive";
+
+.pcShow {
+  @include responsive.mq-max(md) {
+    display: none !important;
+  }
+}
+
+.spShow {
+  @include responsive.mq-min(md) {
+    display: none !important;
+  }
+}
