@@ -1,12 +1,11 @@
 @use "sass:map";
-@use "./breakpoints.module" as breakpoints;
 
-$xsm: map.get(breakpoints.$breakpoint, "xsm");
-$sm: map.get(breakpoints.$breakpoint, "sm");
-$md: map.get(breakpoints.$breakpoint, "md");
-$lg: map.get(breakpoints.$breakpoint, "lg");
-$xl: map.get(breakpoints.$breakpoint, "xl");
-$xxl: map.get(breakpoints.$breakpoint, "xxl");
+$xsm: 375px;
+$sm: 576px;
+$md: 768px;
+$lg: 992px;
+$xl: 1280px;
+$xxl: 1440px;
 
 // min-width
 $breakpoint-min: (
