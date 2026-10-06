@@ -19,9 +19,9 @@ const Recipes = async () => {
       {recipes.length === 0 ? (
         <p>まだ登録されたレシピがありません。</p>
       ) : (
-        <ul className={styles.list}>
+        <div className={styles.list}>
           {recipes.map((recipe) => (
-            <li className={styles.listItem} key={recipe.id}>
+            <div className={styles.listItem} key={recipe.id}>
               <a
                 className={styles.link}
                 href={recipe.url}
@@ -33,12 +33,15 @@ const Recipes = async () => {
                 </div>
                 <p className={styles.title}>{truncate(recipe.title)}</p>
               </a>
-              <p className={styles.meals}>
-                {recipe.meals.map((meal) => MEAL_LABELS[meal]).join("・")}
-              </p>
-            </li>
+              <ul className={styles.metaList}>
+                <li className={styles.meta}>
+                  {recipe.meals.map((meal) => MEAL_LABELS[meal]).join("・")}
+                </li>
+                <li className={styles.meta}>{recipe.channel}</li>
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
       <div className={styles.buttonWrapper}>
         <LinkButton href="/" text="トップへ戻る" />
