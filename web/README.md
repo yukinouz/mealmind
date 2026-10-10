@@ -41,7 +41,7 @@ npm run dev     # 開発用サーバーを起動する
 | デザインルール（色など） | `src/_styles/_variables.scss`                            |
 | ヘッダー                 | `src/app/(pages)/components/header/`・`gnav/`            |
 | 部品：ロゴ               | `public/images/logo/logo.svg`                            |
-| favicon                  | 未実装                                                   |
+| 部品：favicon            | `src/app/favicon.ico`・`icon.svg`・`apple-icon.png`      |
 
 ## 構成
 
