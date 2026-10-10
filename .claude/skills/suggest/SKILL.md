@@ -115,14 +115,27 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 
 ### excluded.json
 
+`recipes.json` と同じ項目に、`excludedAt` と `reason` を足して記録します。あとで「作るレシピ」に戻せるようにするためです。
+
 ```json
 {
-  "url": "<URL>",
+  "id": "<YouTube は動画ID、クラシルは /recipes/ の後ろのID>",
   "title": "<タイトル>",
+  "url": "<URL>",
   "sourceId": "<sources.json の id>",
-  "excludedAt": "<日時>"
+  "channel": "<チャンネル名>",
+  "ingredients": [{ "name": "鶏むね肉", "amount": "200g" }],
+  "mainIngredients": ["鶏むね肉"],
+  "meals": ["<今回の食事>"],
+  "chosenDates": [],
+  "isFavorite": false,
+  "excludedAt": "<日時>",
+  "reason": "rejected"
 }
 ```
+
+- `ingredients`・`mainIngredients` は、提案のときに示した材料から、`recipes.json` と同じ決まりで書きます
+- `reason`：`rejected`（提案で「作らない」を選んだ）か `hidden`（作るレシピから外した）。このスキルが書くのは `rejected` だけです
 
 ## 注意
 

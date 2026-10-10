@@ -97,8 +97,10 @@ scripts/pick-recipe.sh 鶏むね --skip <動画IDまたはURL>   # スキップ�
 | `preferences.json` | 使わない食材・使わない調味料・常備している食材・食事ごとのジャンル       | 記録しない（個人データ） |
 | `preferences.md`   | 好みの自由なメモ                                                         | 記録しない（個人データ） |
 | `recipes.json`     | 「作る」と決めたレシピ                                                   | 記録しない（個人データ） |
-| `excluded.json`    | 「作らない」と決めたレシピ                                               | 記録しない（個人データ） |
+| `excluded.json`    | 提案されないレシピ（「作らない」と決めたもの・作るレシピから外したもの） | 記録しない（個人データ） |
 | `cache/`           | 動画一覧のキャッシュ（再取得できる）                                     | 記録しない               |
+
+`excluded.json` の1件は `recipes.json` と同じ項目を持ち、外した日時 `excludedAt` と理由 `reason`（`rejected`：提案で「作らない」を選んだ / `hidden`：作るレシピから外した）を加えます。作るレシピに戻せるようにするためです。
 
 `sources.json` と `preferences.json` には、記入例の `*.example.json` があります（記録する）。`sources.json` 以外の個人データのファイルは、なければ空として扱われます。
 
