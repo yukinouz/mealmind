@@ -2,9 +2,9 @@
 @use "variables";
 
 .linkButton {
-  color: variables.$color-white0;
+  color: variables.$color-white;
   font-weight: 700;
-  background-color: variables.$color-primary;
+  background-color: variables.$color-orange500;
   border-radius: 999px;
   display: grid;
   place-items: center;

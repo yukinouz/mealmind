@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "avoidIngredients": ["レバー", "パクチー"],
   "avoidSeasonings": ["カルダモン"],
+  "pantryIngredients": ["にんにく", "しょうが", "小ねぎ"],
   "avoidTitleKeywords": ["ケーキ", "プリン"],
   "genres": {
     "noodles": ["パスタ", "麺", "そば", "うどん"],

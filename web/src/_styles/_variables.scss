@@ -1,16 +1,54 @@
 // color
 
-$color-black: #000;
-$color-white0: #fff;
-$color-gray: #666;
-$color-gray-light: #eee;
+$color-black: #1f1a17;
+$color-white: #fff;
+$color-gray600: #666; // レシピカードのチャンネル名
+$color-pink900: #b3261e; // 削除ボタンの文字・アイコン
+$color-pink800: #a8203a; // お気に入り（選択中）の文字
+$color-pink200: #e8c4c0; // 削除ボタンの枠
+$color-pink100: #fde8ec; // お気に入り（選択中）の地
+$color-orange800: #8a4a12; // 食材タグの文字
+$color-orange500: #fa8d2e; // メインカラー
+$color-orange100: #fff1e5; // 食材タグの地
+$color-green800: #3d6130; // 昼食ラベルの文字
+$color-green100: #e6efe0; // 昼食ラベルの地
+$color-brown700: #6e4f3b; // 夕食ラベルの文字
+$color-brown600: #7a5a45; // サムネイル待ちの文字
+$color-brown200: #efe6de; // サムネイル待ちの地
+$color-brown100: #f3e6dc; // 夕食ラベルの地
 
-$color-primary: #fa8d2e;
-$color-secondary: #8a6a55;
-$color-tertiary: #4f7a3a;
-$color-error: #b3261e;
-$color-surface: #fff8f3;
-$color-outline: #857369;
+$color-background: #fff8f3;
+$color-text-sub: #5c4a3e;
+$color-border: #e3cdbb;
+$color-divider: #f0e4da;
+$color-link: #7a4a1f;
+$color-link-hover: #5c3410;
+
+// radius
+
+$radius-pill: 999px;
+$radius20: 20px;
+$radius16: 16px;
+$radius4: 4px;
+
+// shadow
+
+$shadow-card:
+  0 1px 2px rgba(60, 30, 10, 0.08),
+  0 8px 24px rgba(60, 30, 10, 0.08);
+
+// space
+
+$space4: 4px;
+$space8: 8px;
+$space12: 12px;
+$space16: 16px;
+$space24: 24px;
+$space48: 48px;
+$space56: 56px;
+
+// opacity
+$hover-opacity: 0.8;
 
 // triangle
 $clipTriangleTop: polygon(50% 0, 100% 100%, 0 100%);

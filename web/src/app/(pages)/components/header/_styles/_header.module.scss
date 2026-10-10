@@ -1,0 +1,34 @@
+@use "variables";
+@use "responsive";
+
+.header {
+  background-color: variables.$color-white;
+  border-bottom: 1px solid variables.$color-divider;
+}
+
+.items {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 10px;
+}
+
+.logo {
+  @media (any-hover: hover) {
+    &:hover {
+      opacity: variables.$hover-opacity;
+    }
+  }
+
+  > img {
+    height: auto;
+
+    @include responsive.mq-max(md) {
+      width: 120px;
+    }
+
+    @include responsive.mq-min(md) {
+      width: 157px;
+    }
+  }
+}

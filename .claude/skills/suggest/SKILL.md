@@ -97,6 +97,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
   "sourceId": "<sources.json の id>",
   "channel": "<チャンネル名>",
   "ingredients": [{ "name": "鶏むね肉", "amount": "200g" }],
+  "mainIngredients": ["鶏むね肉"],
   "meals": ["<今回の食事。dinner / lunch など>"],
   "registeredAt": "<日時>",
   "chosenDates": ["<今日の日付>"],
@@ -104,16 +105,37 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 }
 ```
 
+- `mainIngredients`：料理の中心になる食材を最大3つ。材料の並び順ではなく、料理名と作り方から選ぶ
+  - 入れない：調味料・油・水・だし・仕上げやお好みのもの・付け合わせの別の料理の材料・ご飯・`data/preferences.json` の `pantryIngredients`（常備している食材）
+  - 薬味は、常備していなければ少しだけ使うときも入れる
+  - 3つを超えるときは、料理の中心になる食材（肉・魚・主な野菜・麺など）を先に選び、薬味を後にする
+  - 麺（うどん・中華麺・パスタなど）とパンは入れる
+  - 名前は部位まで分け、切り方・銘柄・注記は外す（例：豚バラ薄切り肉 → 豚バラ、冷凍うどん → うどん）
+  - `recipes.json` にすでにある名前と同じ食材なら、その名前を使う
+
 ### excluded.json
+
+`recipes.json` と同じ項目に、`excludedAt` と `reason` を足して記録します。あとで「作るレシピ」に戻せるようにするためです。
 
 ```json
 {
-  "url": "<URL>",
+  "id": "<YouTube は動画ID、クラシルは /recipes/ の後ろのID>",
   "title": "<タイトル>",
+  "url": "<URL>",
   "sourceId": "<sources.json の id>",
-  "excludedAt": "<日時>"
+  "channel": "<チャンネル名>",
+  "ingredients": [{ "name": "鶏むね肉", "amount": "200g" }],
+  "mainIngredients": ["鶏むね肉"],
+  "meals": ["<今回の食事>"],
+  "chosenDates": [],
+  "isFavorite": false,
+  "excludedAt": "<日時>",
+  "reason": "rejected"
 }
 ```
+
+- `ingredients`・`mainIngredients` は、提案のときに示した材料から、`recipes.json` と同じ決まりで書きます
+- `reason`：`rejected`（提案で「作らない」を選んだ）か `hidden`（作るレシピから外した）。このスキルが書くのは `rejected` だけです
 
 ## 注意
 

@@ -39,7 +39,9 @@ npm run dev     # 開発用サーバーを起動する
 | 部品：レシピカード       | `src/app/(pages)/recipes/components/recipes/recipes.tsx` |
 | ボタンの色候補           | `src/app/(pages)/components/linkButton/`                 |
 | デザインルール（色など） | `src/_styles/_variables.scss`                            |
-| ロゴ・favicon            | 未実装                                                   |
+| ヘッダー                 | `src/app/(pages)/components/header/`・`gnav/`            |
+| 部品：ロゴ               | `public/images/logo/logo.svg`                            |
+| 部品：favicon            | `src/app/favicon.ico`・`icon.svg`・`apple-icon.png`      |
 
 ## 構成
 

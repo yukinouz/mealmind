@@ -23,3 +23,15 @@
     max-width: 1080px;
   }
 }
+
+.header {
+  @extend %inner;
+
+  @include responsive.mq-max(md) {
+    max-width: 600px;
+  }
+
+  @include responsive.mq-min(md) {
+    max-width: 1120px;
+  }
+}
