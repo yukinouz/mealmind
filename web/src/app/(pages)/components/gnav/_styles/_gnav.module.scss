@@ -1,0 +1,58 @@
+@use "variables";
+@use "responsive";
+
+.list {
+  display: flex;
+
+  @include responsive.mq-max(md) {
+    column-gap: 12px;
+  }
+
+  @include responsive.mq-min(md) {
+    column-gap: 28px;
+  }
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-inline: 2px;
+  color: variables.$color-black;
+  font-weight: 700;
+
+  @include responsive.mq-max(md) {
+    font-size: 12px;
+  }
+
+  @include responsive.mq-min(md) {
+    font-size: 14px;
+  }
+
+  // 下線は、カーソルを乗せたときとキーボードで選んだときに左から伸びる
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -2px;
+    height: 2px;
+    background-color: variables.$color-orange500;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 240ms ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  @media (hover: hover) {
+    &:hover::after {
+      transform: scaleX(1);
+    }
+  }
+
+  &:focus-visible::after {
+    transform: scaleX(1);
+  }
+}
