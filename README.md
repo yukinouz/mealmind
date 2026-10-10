@@ -152,6 +152,7 @@ scripts/pick-recipe.sh 鶏むね --skip <動画IDまたはURL>   # スキップ�
 
 ```
 .
+├── .claude/hooks/    # Claude Code のフック（自動整形）
 ├── .claude/skills/   # Claude Code のスキル
 ├── data/             # 設定と記録（上記）
 ├── docs/adr/         # 設計上の決定の記録
