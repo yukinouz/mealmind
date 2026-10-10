@@ -56,7 +56,12 @@
   }
 }
 
-.meals {
+.metaList {
+  display: grid;
+  row-gap: 4px;
+}
+
+.meta {
   color: variables.$color-gray;
   font-size: 12px;
 }
