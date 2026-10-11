@@ -1,6 +1,6 @@
 # 材料とメイン食材の書き方
 
-レシピを `data/recipes.json`・`data/excluded.json` に記録するときの、`ingredients` と `mainIngredients` の決まりです。`suggest` スキルと Web（レシピ一覧を開いたときに埋める処理）の両方が使います。
+レシピを `data/recipes.json`・`data/excluded.json` に記録するときの、`ingredients` と `mainIngredients` の決まりです。`suggest` スキルと Web（レシピを見せるページを開いたときに埋める処理）の両方が使います。
 
 ## ingredients
 
