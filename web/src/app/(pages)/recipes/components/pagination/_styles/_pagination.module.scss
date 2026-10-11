@@ -1,49 +1,40 @@
 @use "responsive";
 @use "variables";
 
-// PC とスマホで番号の数が違うので、片方だけ出す
-.pc,
-.sp {
+.pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.pc {
-  gap: variables.space(8);
-  margin-top: variables.space(48);
 
   @include responsive.mq-max(md) {
-    display: none;
+    gap: variables.space(4);
+    margin-top: variables.space(32);
   }
-}
-
-.sp {
-  gap: variables.space(4);
-  margin-top: variables.space(40);
 
   @include responsive.mq-min(md) {
-    display: none;
+    gap: variables.space(8);
+    margin-top: variables.space(48);
   }
 }
 
-// 番号と矢印。高さは 40px。スマホは横幅に収まるよう細くする
+// 番号と矢印。高さは 40px
 .page,
 .arrow {
   display: grid;
   place-items: center;
-  height: 40px;
   border: 1px solid variables.$color-border;
   background-color: variables.$color-white;
 
-  .pc & {
-    width: 40px;
-    border-radius: 50%;
-  }
-
-  .sp & {
+  @include responsive.mq-max(md) {
+    height: 32px;
     width: 32px;
     border-radius: variables.$radius-pill;
+  }
+
+  @include responsive.mq-min(md) {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
   }
 
   @media (hover: hover) {
@@ -55,8 +46,15 @@
 
 .page {
   color: variables.$color-text-sub;
-  font-size: 14px;
   font-weight: 700;
+
+  @include responsive.mq-max(md) {
+    font-size: 12px;
+  }
+
+  @include responsive.mq-min(md) {
+    font-size: 14px;
+  }
 
   &[aria-current="page"] {
     border-color: variables.$color-orange500;
@@ -65,20 +63,14 @@
   }
 }
 
-.arrow {
-  color: variables.$color-black;
-
-  > svg {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+// 共通のスタイルで画像の幅が 100% になるので、矢印の大きさを決める
+.arrow > img {
+  @include responsive.mq-max(md) {
+    width: 18px;
   }
 
-  .sp & > svg {
-    width: 18px;
-    height: 18px;
+  @include responsive.mq-min(md) {
+    width: 20px;
   }
 }
 
@@ -87,11 +79,11 @@
   font-weight: 700;
   text-align: center;
 
-  .pc & {
-    width: 24px;
+  @include responsive.mq-max(md) {
+    width: 20px;
   }
 
-  .sp & {
-    width: 20px;
+  @include responsive.mq-min(md) {
+    width: 24px;
   }
 }
