@@ -1,0 +1,95 @@
+@use "variables";
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  gap: variables.space(12);
+  padding: variables.space(20) variables.space(24);
+  border: 1px solid variables.$color-divider;
+  border-radius: variables.$radius20;
+  background-color: variables.$color-white;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: variables.space(12);
+  min-height: 36px;
+}
+
+.heading {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.clear {
+  min-height: 36px;
+  padding-inline: variables.space(4);
+  color: variables.$color-orange800;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+// 項目の行。ラベルと選択肢を横に並べ、狭いときは選択肢を折り返す
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.space(8) variables.space(16);
+  margin: 0;
+  padding: variables.space(12) 0 0;
+  border: none;
+  border-top: 1px solid variables.$color-divider-light;
+}
+
+// legend は flex の中に並ばないので、float で行の中に置く
+.label {
+  float: left;
+  flex: 0 0 96px;
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0;
+  color: variables.$color-text-sub;
+  font-weight: 700;
+}
+
+.options {
+  display: flex;
+  flex: 1 1 320px;
+  flex-wrap: wrap;
+  gap: variables.space(8);
+  min-width: 0;
+}
+
+// 絞り込みチップ。押せるものの高さの例外（30px・角丸 4px）
+.chip {
+  height: 30px;
+  padding-inline: variables.space(16);
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius4;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+  font-size: 12px;
+  font-weight: 700;
+
+  &[aria-pressed="true"] {
+    border-color: variables.$color-orange500;
+    background-color: variables.$color-orange500;
+    color: variables.$color-white;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
