@@ -273,4 +273,9 @@
   &:focus {
     outline: none;
   }
+
+  // ブラウザが出す「×」は出さない（検索語は打ち直して消す）
+  &::-webkit-search-cancel-button {
+    appearance: none;
+  }
 }
