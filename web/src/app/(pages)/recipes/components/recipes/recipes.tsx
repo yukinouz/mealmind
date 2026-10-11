@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { LinkButton } from "@/app/(pages)/components/linkButton/linkButton";
+import { RecipeCard } from "@/app/(pages)/components/recipeCard/recipeCard";
 import { readRecipes, sortByNewest } from "@/lib/recipes";
-import { RecipeCard } from "../recipeCard/recipeCard";
 import styles from "./_styles/_recipes.module.scss";
 
 const Recipes = async () => {
@@ -17,7 +17,7 @@ const Recipes = async () => {
         <ul className={styles.list}>
           {recipes.map((recipe) => (
             <li key={recipe.id}>
-              <RecipeCard recipe={recipe} />
+              <RecipeCard recipe={recipe} isFavorite={recipe.isFavorite} />
             </li>
           ))}
         </ul>

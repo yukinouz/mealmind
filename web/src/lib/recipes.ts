@@ -4,8 +4,6 @@ import path from "node:path";
 // npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
 const RECIPES_PATH = path.resolve(process.cwd(), "..", "data", "recipes.json");
 
-const YOUTUBE_WATCH_URL = "https://www.youtube.com/watch";
-
 export type Meal = "lunch" | "dinner";
 
 // data/recipes.json の1件の形（一覧で使う項目だけ）
@@ -55,13 +53,6 @@ export const sortByNewest = (recipes: Recipe[]): Recipe[] =>
   recipes.toSorted(
     (a, b) => Date.parse(b.registeredAt) - Date.parse(a.registeredAt),
   );
-
-// YouTube は id が動画 ID なので画像の URL を組み立てる。それ以外は画像なし（null）
-export const thumbnailUrlOf = (recipe: Recipe): string | null => {
-  if (!recipe.url.startsWith(YOUTUBE_WATCH_URL)) return null;
-
-  return `https://i.ytimg.com/vi/${recipe.id}/mqdefault.jpg`;
-};
 
 // 書き込みの途中で壊れないよう、一時ファイルに書いてから置き換える（suggest スキルと同じ方法）
 // 整形は jq の出力（2スペース・末尾に改行）に合わせる

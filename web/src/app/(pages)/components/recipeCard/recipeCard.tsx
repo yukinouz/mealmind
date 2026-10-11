@@ -1,5 +1,6 @@
 import { setFavoriteAction } from "@/actions/favorite";
-import { type Meal, type Recipe, thumbnailUrlOf } from "@/lib/recipes";
+import type { Meal, Recipe } from "@/lib/recipes";
+import { thumbnailUrlOf } from "@/utils/thumbnailUrl";
 import { truncate } from "@/utils/truncate";
 import { RecipeThumbnail } from "../recipeThumbnail/recipeThumbnail";
 import styles from "./_styles/_recipeCard.module.scss";
@@ -10,7 +11,12 @@ const MEAL_LABELS: Record<Meal, string> = {
 };
 
 interface RecipeCardProps {
-  recipe: Recipe;
+  recipe: Pick<
+    Recipe,
+    "id" | "title" | "url" | "channel" | "meals" | "mainIngredients"
+  >;
+  // 渡さないときはハートを出さない（まだ記録していない、提案したレシピなど）
+  isFavorite?: boolean;
 }
 
 interface FavoriteButtonProps {
@@ -42,8 +48,8 @@ const FavoriteButton = ({ recipeId, isFavorite }: FavoriteButtonProps) => {
   );
 };
 
-// レシピ1件分のカード。ハートでお気に入りを切り替えられる（メイン食材は表示だけ）
-const RecipeCard = ({ recipe }: RecipeCardProps) => {
+/** レシピ1件分のカード。ハートでお気に入りを切り替えられる（メイン食材は表示だけ） */
+const RecipeCard = ({ recipe, isFavorite }: RecipeCardProps) => {
   const mainIngredients = recipe.mainIngredients ?? [];
 
   return (
@@ -53,7 +59,9 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
         <div className={styles.image}>
           <RecipeThumbnail src={thumbnailUrlOf(recipe)} />
         </div>
-        <FavoriteButton recipeId={recipe.id} isFavorite={recipe.isFavorite} />
+        {isFavorite !== undefined && (
+          <FavoriteButton recipeId={recipe.id} isFavorite={isFavorite} />
+        )}
       </div>
       <div className={styles.item}>
         <div className={styles.meta}>
