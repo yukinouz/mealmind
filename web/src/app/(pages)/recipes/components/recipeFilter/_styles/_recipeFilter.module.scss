@@ -2,9 +2,8 @@
 @use "variables";
 
 .filter {
-  display: flex;
-  flex-direction: column;
-  gap: variables.space(12);
+  display: grid;
+  row-gap: variables.space(12);
   padding: variables.space(20) variables.space(24);
   border: 1px solid variables.$color-divider;
   border-radius: variables.$radius20;
@@ -22,14 +21,14 @@
 .heading {
   font-size: 16px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .clear {
-  min-height: 36px;
-  padding-inline: variables.space(4);
   color: variables.$color-orange800;
   font-size: 14px;
   font-weight: 700;
+  text-align: right;
   text-decoration: underline;
 
   @media (hover: hover) {
@@ -41,46 +40,58 @@
 
 // 項目の行。ラベルと選択肢を横に並べ、狭いときは選択肢を折り返す
 .group {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  display: grid;
   gap: variables.space(8) variables.space(16);
-  margin: 0;
   padding: variables.space(12) 0 0;
-  border: none;
-  border-top: 1px solid variables.$color-divider-light;
+  border-top: 1px solid variables.$color-divider;
+
+  @include responsive.mq-max(md) {
+    grid-template-columns: 72px 1fr;
+  }
+
+  @include responsive.mq-min(md) {
+    grid-template-columns: 96px 1fr;
+  }
 }
 
-// float を付けると枠線の上の legend ではなくなり、flex の項目として選択肢と横に並ぶ
 .label {
-  float: left;
-  flex: 0 0 96px;
-  display: flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0;
+  float: left; // legendにgridを効かせるため
   color: variables.$color-text-sub;
   font-weight: 700;
+
+  @include responsive.mq-max(md) {
+    font-size: 13px;
+  }
 }
 
 .options {
+  align-items: center;
   display: flex;
-  flex: 1 1 320px;
   flex-wrap: wrap;
   gap: variables.space(8);
-  min-width: 0;
 }
 
 // 絞り込みチップ。押せるものの高さの例外（30px・角丸 4px）
 .chip {
-  height: 30px;
-  padding-inline: variables.space(16);
   border: 1px solid variables.$color-border;
   border-radius: variables.$radius4;
   background-color: variables.$color-white;
   color: variables.$color-text-sub;
-  font-size: 12px;
   font-weight: 700;
+  width: auto;
+
+  @include responsive.mq-max(md) {
+    height: 24px;
+    font-size: 11px;
+    padding-inline: variables.space(8);
+  }
+
+  @include responsive.mq-min(md) {
+    height: 30px;
+    font-size: 12px;
+    padding-inline: variables.space(16);
+  }
 
   &[aria-pressed="true"] {
     border-color: variables.$color-orange500;
@@ -109,7 +120,14 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: variables.space(12);
+
+  @include responsive.mq-max(md) {
+    gap: variables.space(8);
+  }
+
+  @include responsive.mq-min(md) {
+    gap: variables.space(12);
+  }
 }
 
 // 押せるものの高さ（小）38px
@@ -117,14 +135,24 @@
   display: flex;
   align-items: center;
   gap: variables.space(8);
-  min-height: 38px;
-  padding-inline: variables.space(16);
   border: 1px solid variables.$color-border;
   border-radius: variables.$radius-pill;
   background-color: variables.$color-white;
   color: variables.$color-text-sub;
-  font-size: 14px;
   font-weight: 700;
+  width: auto;
+
+  @include responsive.mq-max(md) {
+    padding-inline: variables.space(12);
+    min-height: 32px;
+    font-size: 13px;
+  }
+
+  @include responsive.mq-min(md) {
+    padding-inline: variables.space(16);
+    min-height: 38px;
+    font-size: 14px;
+  }
 
   > svg {
     fill: none;
@@ -154,11 +182,19 @@
 .order {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
   border: 1px solid variables.$color-border;
   border-radius: 50%;
   background-color: variables.$color-white;
+
+  @include responsive.mq-max(md) {
+    width: 32px;
+    height: 32px;
+  }
+
+  @include responsive.mq-min(md) {
+    width: 38px;
+    height: 38px;
+  }
 
   > svg {
     fill: none;
@@ -188,11 +224,8 @@
 // 検索欄。押せるものの高さ（中）44px
 .search {
   display: flex;
-  flex: 0 1 360px;
   align-items: center;
   gap: variables.space(4);
-  min-width: 240px;
-  height: 44px;
   padding: 0 6px 0 variables.space(16);
   border: 1px solid variables.$color-border;
   border-radius: variables.$radius-pill;
@@ -200,12 +233,22 @@
 
   // 狭い画面では折り返した行いっぱいに広げる
   @include responsive.mq-max(md) {
-    flex-basis: 100%;
+    height: 38px;
+    width: 100%;
+  }
+
+  @include responsive.mq-min(md) {
+    height: 44px;
+    flex: 0 1 360px;
   }
 
   &:focus-within {
     border-color: variables.$color-orange500;
     box-shadow: 0 0 0 3px rgba(250, 141, 46, 0.25);
+  }
+
+  > img {
+    width: auto;
   }
 }
 
@@ -231,32 +274,8 @@
     outline: none;
   }
 
-  // ブラウザが出す「×」は使わず、デザインの「×」を出す
+  // ブラウザが出す「×」は出さない（検索語は打ち直して消す）
   &::-webkit-search-cancel-button {
     appearance: none;
-  }
-}
-
-.searchClear {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: variables.$color-divider-light;
-  color: variables.$color-text-sub;
-
-  > svg {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    stroke-linecap: round;
-  }
-
-  @media (hover: hover) {
-    &:hover {
-      cursor: pointer;
-    }
   }
 }

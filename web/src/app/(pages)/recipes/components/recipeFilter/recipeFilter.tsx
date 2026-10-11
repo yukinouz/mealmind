@@ -154,7 +154,6 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
   const [text, setText] = useState(query);
   // 日本語の変換中は、確定するまで検索しない
   const [isComposing, setIsComposing] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   // 最後に自分で渡した言葉。URL がこれと違う値に変わったら、外から変えられたと分かる
   const sentQueryRef = useRef(query);
   // 親が描き直されるたびに待ち時間がやり直しにならないよう、最新の onSearch は ref で持つ
@@ -182,14 +181,6 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
     return () => clearTimeout(timer);
   }, [text, isComposing]);
 
-  /** 「×」で消したときは、待たずにすぐ反映し、続けて打てるよう入力欄に戻る */
-  const clear = () => {
-    setText("");
-    sentQueryRef.current = "";
-    onSearch("");
-    inputRef.current?.focus();
-  };
-
   return (
     <search className={styles.search}>
       <Image
@@ -201,7 +192,6 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
       />
       <input
         className={styles.searchInput}
-        ref={inputRef}
         type="search"
         aria-label="レシピを検索"
         placeholder="料理名・食材・チャンネル名で検索"
@@ -213,18 +203,6 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
         onCompositionStart={() => setIsComposing(true)}
         onCompositionEnd={() => setIsComposing(false)}
       />
-      {text !== "" && (
-        <button
-          className={styles.searchClear}
-          type="button"
-          aria-label="検索語を消す"
-          onClick={clear}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 6l12 12M18 6 6 18" />
-          </svg>
-        </button>
-      )}
     </search>
   );
 };
