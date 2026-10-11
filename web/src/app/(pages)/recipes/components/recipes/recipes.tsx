@@ -7,6 +7,7 @@ import {
   type RecipeFilter as Filter,
   filterRecipes,
   type RecipeOrder,
+  type RecipeView,
   sortRecipes,
   toRecipeQuery,
 } from "@/utils/recipeFilter";
@@ -20,11 +21,12 @@ interface RecipesProps {
 
 interface NoMatchProps {
   order: RecipeOrder;
+  view: RecipeView;
 }
 
-/** 絞り込んだ結果が0件のときのお知らせ。「条件をすべて解除」は、並び順だけを残した URL へ移る */
-const NoMatch = ({ order }: NoMatchProps) => {
-  const query = toRecipeQuery({ ...DEFAULT_FILTER, order });
+/** 絞り込んだ結果が0件のときのお知らせ。「条件をすべて解除」は、並び順と表示形式だけを残した URL へ移る */
+const NoMatch = ({ order, view }: NoMatchProps) => {
+  const query = toRecipeQuery({ ...DEFAULT_FILTER, order, view });
   return (
     <div className={styles.noMatch}>
       <p>条件に合うレシピが見つかりませんでした。</p>
@@ -63,12 +65,16 @@ const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
       {unfilled.length > 0 && <IngredientsFiller target="recipes" />}
       <RecipeFilter filter={filter} channels={channels} />
       {recipes.length === 0 ? (
-        <NoMatch order={filter.order} />
+        <NoMatch order={filter.order} view={filter.view} />
       ) : (
-        <ul className={styles.list}>
+        <ul className={filter.view === "list" ? styles.rows : styles.list}>
           {recipes.map((recipe) => (
             <li key={recipe.id}>
-              <RecipeCard recipe={recipe} isFavorite={recipe.isFavorite} />
+              <RecipeCard
+                recipe={recipe}
+                isFavorite={recipe.isFavorite}
+                layout={filter.view}
+              />
             </li>
           ))}
         </ul>

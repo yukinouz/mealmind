@@ -1,7 +1,6 @@
 @use "responsive";
 @use "variables";
 
-// 絞り込み欄と結果は役割が違うので、間を 48px 空ける
 .list {
   display: grid;
   margin-top: variables.space(48);
@@ -13,6 +12,26 @@
   @include responsive.mq-min(md) {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 40px 32px;
+  }
+}
+
+// リスト表示。1つの枠で囲み、1行ずつ線で区切る
+.rows {
+  border: 1px solid variables.$color-divider;
+  border-radius: variables.$radius20;
+  background-color: variables.$color-white;
+  overflow: hidden;
+
+  @include responsive.mq-max(md) {
+    margin-top: variables.space(32);
+  }
+
+  @include responsive.mq-min(md) {
+    margin-top: variables.space(48);
+  }
+
+  > li + li {
+    border-top: 1px solid variables.$color-divider;
   }
 }
 
