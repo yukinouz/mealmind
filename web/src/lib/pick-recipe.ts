@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import path from "node:path";
 import { promisify } from "node:util";
+import type { Meal } from "@/lib/recipes";
 
 const execFileAsync = promisify(execFile);
 
@@ -37,8 +38,23 @@ export type PickedRecipe =
     }
   | { type: "none" };
 
-// レシピを1件抽選する。スクリプトが失敗したときは例外を投げる
-export const pickRecipe = async (): Promise<PickedRecipe> => {
-  const { stdout } = await execFileAsync(SCRIPT_PATH);
+export interface PickOptions {
+  keywords: string[];
+  meal: Meal;
+}
+
+/**
+ * キーワードと食事を指定して、レシピを1件抽選する。スクリプトが失敗したときは例外を投げる
+ * シェルを通さずに引数として渡すので、キーワードに記号があってもコマンドとして実行されない
+ */
+export const pickRecipe = async ({
+  keywords,
+  meal,
+}: PickOptions): Promise<PickedRecipe> => {
+  const { stdout } = await execFileAsync(SCRIPT_PATH, [
+    ...keywords,
+    "--meal",
+    meal,
+  ]);
   return JSON.parse(stdout) as PickedRecipe;
 };

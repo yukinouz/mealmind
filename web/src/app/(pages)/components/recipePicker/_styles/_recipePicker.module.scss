@@ -1,0 +1,145 @@
+@use "responsive";
+@use "variables";
+
+// 夕食・昼食のボタン1つ分の幅。白い背景をこの幅だけすべらせる
+$meal-button-width: 72px;
+
+.hero {
+  text-align: center;
+}
+
+.hgroup {
+  display: grid;
+  gap: 20px;
+}
+
+.lead {
+  color: variables.$color-brown600;
+  font-weight: 700;
+}
+
+.title {
+  font-weight: 700;
+  line-height: 1.3;
+
+  @include responsive.mq-max(md) {
+    font-size: 32px;
+  }
+
+  @include responsive.mq-min(md) {
+    font-size: 44px;
+  }
+}
+
+.search {
+  width: 100%;
+}
+
+.form {
+  margin-top: variables.space(28);
+  display: flex;
+  flex-direction: column;
+}
+
+.text {
+  color: variables.$color-text-sub;
+  font-size: 13px;
+  margin-top: variables.space(12);
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding-inline: 20px;
+  background-color: variables.$color-white;
+  border: 2px solid variables.$color-brown300;
+  border-radius: variables.$radius-pill;
+  box-shadow: variables.$shadow-search;
+
+  > img {
+    width: 20px;
+  }
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  color: variables.$color-black;
+  font-family: inherit;
+  font-size: 16px;
+
+  &::placeholder {
+    color: variables.$color-placeholder;
+  }
+}
+
+.mealSwitch {
+  position: relative;
+  align-self: center;
+  display: flex;
+  margin-top: variables.space(12);
+  padding: 3px;
+  border: none;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-brown100;
+}
+
+.thumb {
+  position: absolute;
+  inset-block: 3px;
+  left: 3px;
+  width: $meal-button-width;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-white;
+  transition: transform 220ms ease;
+
+  .mealSwitch[data-meal="lunch"] & {
+    transform: translateX($meal-button-width);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.mealButton {
+  position: relative; // 白い背景より上に文字を出す
+  width: $meal-button-width;
+  height: 30px;
+  border-radius: variables.$radius-pill;
+  background-color: transparent;
+  color: variables.$color-black;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.submit {
+  display: grid;
+  place-items: center;
+  width: 280px;
+  height: 52px;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-orange500;
+  color: variables.$color-white;
+  font-size: 16px;
+  font-weight: 700;
+  margin: variables.space(24) auto 0;
+
+  &:disabled {
+    opacity: variables.$hover-opacity;
+    cursor: wait;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      opacity: variables.$hover-opacity;
+      cursor: pointer;
+    }
+  }
+}

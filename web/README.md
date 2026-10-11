@@ -17,7 +17,7 @@ npm run dev     # 開発用サーバーを起動する
 
 | ページ     | 内容                                                                                                          |
 | ---------- | ------------------------------------------------------------------------------------------------------------- |
-| `/`        | レシピを1件選んで表示する                                                                                     |
+| `/`        | 使いたい食材や料理名と、食事（夕食・昼食）を指定して、レシピを1件選んで表示する                               |
 | `/recipes` | 「作る」と決めたレシピ（`data/recipes.json`）を、追加が新しい順に一覧表示する。ハートでお気に入りを切り替える |
 
 ## 開発用のコマンド
@@ -32,16 +32,16 @@ npm run dev     # 開発用サーバーを起動する
 
 画面デザインは Claude のキャンバス「[MealMind 画面デザイン](https://claude.ai/artifact/TXXVw7GYMMacmmEEDJninW)」にあります（非公開）。色・余白などはデザインデータを正とする。
 
-| デザイン（アートボード） | コード                                              |
-| ------------------------ | --------------------------------------------------- |
-| トップ                   | `src/app/(pages)/page.tsx`                          |
-| レシピ一覧               | `src/app/(pages)/recipes/page.tsx`                  |
-| 部品：レシピカード       | `src/app/(pages)/recipes/components/recipeCard/`    |
-| ボタンの色候補           | `src/app/(pages)/components/linkButton/`            |
-| デザインルール（色など） | `src/_styles/_variables.scss`                       |
-| ヘッダー                 | `src/app/(pages)/components/header/`・`gnav/`       |
-| 部品：ロゴ               | `public/images/logo/logo.svg`                       |
-| 部品：favicon            | `src/app/favicon.ico`・`icon.svg`・`apple-icon.png` |
+| デザイン（アートボード） | コード                                                 |
+| ------------------------ | ------------------------------------------------------ |
+| トップ                   | `src/app/(pages)/page.tsx`・`components/recipePicker/` |
+| レシピ一覧               | `src/app/(pages)/recipes/page.tsx`                     |
+| 部品：レシピカード       | `src/app/(pages)/recipes/components/recipeCard/`       |
+| ボタンの色候補           | `src/app/(pages)/components/linkButton/`               |
+| デザインルール（色など） | `src/_styles/_variables.scss`                          |
+| ヘッダー                 | `src/app/(pages)/components/header/`・`gnav/`          |
+| 部品：ロゴ               | `public/images/logo/logo.svg`                          |
+| 部品：favicon            | `src/app/favicon.ico`・`icon.svg`・`apple-icon.png`    |
 
 ## 構成
 

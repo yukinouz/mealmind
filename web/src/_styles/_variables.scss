@@ -14,7 +14,8 @@ $color-orange100: #fff1e5; // 食材タグの地
 $color-green800: #3d6130; // 昼食ラベルの文字
 $color-green100: #e6efe0; // 昼食ラベルの地
 $color-brown700: #6e4f3b; // 夕食ラベルの文字
-$color-brown600: #7a5a45; // サムネイル待ちの文字
+$color-brown600: #7a5a45; // サムネイル待ちの文字・トップの説明文
+$color-brown300: #f0d9c6; // トップの検索欄の枠
 $color-brown200: #efe6de; // サムネイル待ちの地
 $color-brown100: #f3e6dc; // 夕食ラベルの地
 
@@ -24,6 +25,7 @@ $color-border: #e3cdbb;
 $color-divider: #f0e4da;
 $color-link: #7a4a1f;
 $color-link-hover: #5c3410;
+$color-placeholder: #9a857a; // 入力欄の例文
 
 // radius
 
@@ -37,6 +39,9 @@ $radius4: 4px;
 $shadow-card:
   0 1px 2px rgba(60, 30, 10, 0.08),
   0 8px 24px rgba(60, 30, 10, 0.08);
+$shadow-search:
+  0 1px 2px rgba(60, 30, 10, 0.06),
+  0 12px 32px rgba(60, 30, 10, 0.08);
 
 // space
 
