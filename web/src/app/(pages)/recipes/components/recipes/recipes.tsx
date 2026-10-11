@@ -1,7 +1,7 @@
 import { connection } from "next/server";
-import { LinkButton } from "@/app/(pages)/components/linkButton/linkButton";
 import { RecipeCard } from "@/app/(pages)/components/recipeCard/recipeCard";
-import { readRecipes, sortByNewest } from "@/lib/recipes";
+import { findUnfilled, readRecipes, sortByNewest } from "@/lib/recipes";
+import { IngredientsFiller } from "../ingredientsFiller/ingredientsFiller";
 import styles from "./_styles/_recipes.module.scss";
 
 const Recipes = async () => {
@@ -9,8 +9,11 @@ const Recipes = async () => {
   await connection();
   // デフォルトは追加が新しい順
   const recipes = sortByNewest(await readRecipes());
+  // recipes.json に埋めるものがあるときだけ、Claude を呼ぶ（excluded.json は非表示のレシピのページで埋める）
+  const hasUnfilled = (await findUnfilled("recipes")).length > 0;
   return (
     <>
+      {hasUnfilled && <IngredientsFiller target="recipes" />}
       {recipes.length === 0 ? (
         <p>まだ登録されたレシピがありません。</p>
       ) : (
@@ -22,9 +25,6 @@ const Recipes = async () => {
           ))}
         </ul>
       )}
-      <div className={styles.buttonWrapper}>
-        <LinkButton href="/" text="トップへ戻る" />
-      </div>
     </>
   );
 };

@@ -174,6 +174,7 @@ scripts/pick-recipe.sh 豚バラ --count 5           # YouTube だけから、�
 ├── .claude/skills/   # Claude Code のスキル
 ├── data/             # 設定と記録（上記）
 ├── docs/adr/         # 設計上の決定の記録
+├── prompts/          # スキルと Web が Claude に渡す決まり（材料とメイン食材の書き方）
 ├── scripts/          # 動画一覧の取得・レシピの抽選
 └── web/              # ローカルで動かす Web アプリ（開発中）
 ```

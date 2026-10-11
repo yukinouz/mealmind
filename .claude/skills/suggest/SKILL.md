@@ -67,7 +67,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 1. これを作る　2. これは作らない　3. 今回はスキップ
 ```
 
-- YouTube の材料は、出力の `description` から書き出します。分量はそのまま写し、推測で補いません
+- YouTube の材料は、出力の `description` から [prompts/record-ingredients.md](../../../prompts/record-ingredients.md) の `ingredients` の決まりで書き出します
 - 材料が複数の料理に分かれているときは、見出しごとにまとめます
 
 - タイトルは URL へのリンクにします
@@ -105,13 +105,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 }
 ```
 
-- `mainIngredients`：料理の中心になる食材を最大3つ。材料の並び順ではなく、料理名と作り方から選ぶ
-  - 入れない：調味料・油・水・だし・仕上げやお好みのもの・付け合わせの別の料理の材料・ご飯・`data/preferences.json` の `pantryIngredients`（常備している食材）
-  - 薬味は、常備していなければ少しだけ使うときも入れる
-  - 3つを超えるときは、料理の中心になる食材（肉・魚・主な野菜・麺など）を先に選び、薬味を後にする
-  - 麺（うどん・中華麺・パスタなど）とパンは入れる
-  - 名前は部位まで分け、切り方・銘柄・注記は外す（例：豚バラ薄切り肉 → 豚バラ、冷凍うどん → うどん）
-  - `recipes.json` にすでにある名前と同じ食材なら、その名前を使う
+- `ingredients`・`mainIngredients`：[prompts/record-ingredients.md](../../../prompts/record-ingredients.md) の決まりで書く
 
 ### excluded.json
 
@@ -134,7 +128,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 }
 ```
 
-- `ingredients`・`mainIngredients` は、提案のときに示した材料から、`recipes.json` と同じ決まりで書きます
+- `ingredients`・`mainIngredients` は、提案のときに示した材料から、`recipes.json` と同じ決まり（[prompts/record-ingredients.md](../../../prompts/record-ingredients.md)）で書きます
 - `reason`：`rejected`（提案で「作らない」を選んだ）か `hidden`（作るレシピから外した）。このスキルが書くのは `rejected` だけです
 
 ## 注意

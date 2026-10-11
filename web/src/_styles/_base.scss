@@ -9,4 +9,16 @@ body {
   letter-spacing: 0.02em;
   line-height: 1.5;
   -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+
+  @include responsive.mq-max(md) {
+    padding-top: variables.$header-height-sp;
+    min-height: 100svh;
+  }
+
+  @include responsive.mq-min(md) {
+    padding-top: variables.$header-height-pc;
+    min-height: 100vh;
+  }
 }
