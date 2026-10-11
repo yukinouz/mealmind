@@ -32,16 +32,16 @@ npm run dev     # 開発用サーバーを起動する
 
 画面デザインは Claude のキャンバス「[MealMind 画面デザイン](https://claude.ai/artifact/TXXVw7GYMMacmmEEDJninW)」にあります（非公開）。色・余白などはデザインデータを正とする。
 
-| デザイン（アートボード） | コード                                                   |
-| ------------------------ | -------------------------------------------------------- |
-| トップ                   | `src/app/(pages)/page.tsx`                               |
-| レシピ一覧               | `src/app/(pages)/recipes/page.tsx`                       |
-| 部品：レシピカード       | `src/app/(pages)/recipes/components/recipes/recipes.tsx` |
-| ボタンの色候補           | `src/app/(pages)/components/linkButton/`                 |
-| デザインルール（色など） | `src/_styles/_variables.scss`                            |
-| ヘッダー                 | `src/app/(pages)/components/header/`・`gnav/`            |
-| 部品：ロゴ               | `public/images/logo/logo.svg`                            |
-| 部品：favicon            | `src/app/favicon.ico`・`icon.svg`・`apple-icon.png`      |
+| デザイン（アートボード） | コード                                              |
+| ------------------------ | --------------------------------------------------- |
+| トップ                   | `src/app/(pages)/page.tsx`                          |
+| レシピ一覧               | `src/app/(pages)/recipes/page.tsx`                  |
+| 部品：レシピカード       | `src/app/(pages)/recipes/components/recipeCard/`    |
+| ボタンの色候補           | `src/app/(pages)/components/linkButton/`            |
+| デザインルール（色など） | `src/_styles/_variables.scss`                       |
+| ヘッダー                 | `src/app/(pages)/components/header/`・`gnav/`       |
+| 部品：ロゴ               | `public/images/logo/logo.svg`                       |
+| 部品：favicon            | `src/app/favicon.ico`・`icon.svg`・`apple-icon.png` |
 
 ## 構成
 

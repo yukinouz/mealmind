@@ -16,6 +16,7 @@ export type Recipe = {
   sourceId: string;
   channel: string;
   meals: Meal[];
+  mainIngredients?: string[];
   isFavorite: boolean;
 };
 
