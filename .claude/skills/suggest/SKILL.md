@@ -98,6 +98,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
   "channel": "<チャンネル名>",
   "ingredients": [{ "name": "鶏むね肉", "amount": "200g" }],
   "mainIngredients": ["鶏むね肉"],
+  "cuisine": "washoku",
   "meals": ["<今回の食事。dinner / lunch など>"],
   "registeredAt": "<日時>",
   "chosenDates": ["<今日の日付>"],
@@ -105,7 +106,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 }
 ```
 
-- `ingredients`・`mainIngredients`：[prompts/record-ingredients.md](../../../prompts/record-ingredients.md) の決まりで書く
+- `ingredients`・`mainIngredients`・`cuisine`：[prompts/record-ingredients.md](../../../prompts/record-ingredients.md) の決まりで書く
 
 ### excluded.json
 
@@ -120,6 +121,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
   "channel": "<チャンネル名>",
   "ingredients": [{ "name": "鶏むね肉", "amount": "200g" }],
   "mainIngredients": ["鶏むね肉"],
+  "cuisine": "washoku",
   "meals": ["<今回の食事>"],
   "chosenDates": [],
   "isFavorite": false,
@@ -128,7 +130,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 }
 ```
 
-- `ingredients`・`mainIngredients` は、提案のときに示した材料から、`recipes.json` と同じ決まり（[prompts/record-ingredients.md](../../../prompts/record-ingredients.md)）で書きます
+- `ingredients`・`mainIngredients`・`cuisine` は、提案のときに示した材料から、`recipes.json` と同じ決まり（[prompts/record-ingredients.md](../../../prompts/record-ingredients.md)）で書きます
 - `reason`：`rejected`（提案で「作らない」を選んだ）か `hidden`（作るレシピから外した）。このスキルが書くのは `rejected` だけです
 
 ## 注意
