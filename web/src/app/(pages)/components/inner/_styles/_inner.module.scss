@@ -35,3 +35,11 @@
     max-width: 1120px;
   }
 }
+
+.hero {
+  @extend %inner;
+
+  @include responsive.mq-min(md) {
+    max-width: 740px;
+  }
+}
