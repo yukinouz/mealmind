@@ -74,8 +74,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: variables.space(16) 20px variables.space(12);
+  row-gap: variables.space(12);
+  padding: variables.space(16) 20px variables.space(20);
 }
 
 .meta {
@@ -104,7 +104,6 @@
 }
 
 .recipeTitle {
-  margin-top: variables.space(4);
   min-height: 3em;
   font-size: 16px;
   font-weight: 700;
@@ -115,7 +114,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding-block: variables.space(4);
+  margin-bottom: variables.space(-4);
 }
 
 .tag {

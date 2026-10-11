@@ -17,7 +17,7 @@ const SCRIPT_PATH = path.resolve(
 export type PickedRecipe =
   | {
       type: "youtube";
-      meal: string;
+      meal: Meal;
       sourceId: string;
       channelName: string;
       title: string;

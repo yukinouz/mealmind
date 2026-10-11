@@ -1,0 +1,95 @@
+@use "variables";
+
+.heading {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: variables.space(20);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: variables.space(24);
+}
+
+// カードと選択ボタンをひとまとめにし、ふわっと出す
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: variables.space(12);
+  animation: enter 420ms ease both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: variables.space(8);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.choice {
+  height: 34px;
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius12;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+
+  &[aria-pressed="true"] {
+    color: variables.$color-white;
+  }
+
+  &[data-choice="make"][aria-pressed="true"] {
+    border-color: variables.$color-orange500;
+    background-color: variables.$color-orange500;
+  }
+
+  &[data-choice="reject"][aria-pressed="true"] {
+    border-color: variables.$color-text-sub;
+    background-color: variables.$color-text-sub;
+  }
+
+  &[data-choice="skip"][aria-pressed="true"] {
+    border-color: variables.$color-gray300;
+    background-color: variables.$color-gray100;
+    color: variables.$color-gray700;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.notice {
+  padding: variables.space(20);
+  border-radius: variables.$radius16;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+  font-size: 16px;
+  text-align: center;
+}

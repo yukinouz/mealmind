@@ -5,6 +5,7 @@ import { startTransition, useActionState, useState } from "react";
 import { type PickState, pickRecipeAction } from "@/actions/pick-recipe";
 import { Inner } from "@/app/(pages)/components/inner/inner";
 import { Section } from "@/app/(pages)/components/section/section";
+import { SuggestedRecipes } from "@/app/(pages)/components/suggestedRecipes/suggestedRecipes";
 import type { Meal } from "@/lib/recipes";
 import styles from "./_styles/_recipePicker.module.scss";
 
@@ -43,34 +44,6 @@ const MealToggle = ({ meal, onChange }: MealToggleProps) => {
   );
 };
 
-/** 抽選の結果を表示する */
-const PickResult = ({ state }: { state: PickState }) => {
-  if (state.type === "idle") return null;
-  if (state.type === "error") return <p role="alert">{state.message}</p>;
-  if (state.type === "none") return <p>条件に合うレシピがありませんでした。</p>;
-  if (state.type === "kurashiru") {
-    return (
-      <p>
-        クラシルが選ばれました（画面からの検索はまだできません）。
-        <a href={state.siteUrl} target="_blank" rel="noopener noreferrer">
-          {state.channelName}
-        </a>
-      </p>
-    );
-  }
-
-  return (
-    <article>
-      <h2>
-        <a href={state.url} target="_blank" rel="noopener noreferrer">
-          {state.title}
-        </a>
-      </h2>
-      <p>{state.channelName}</p>
-    </article>
-  );
-};
-
 /** トップの見出しと、キーワード・食事を指定してレシピを選ぶフォーム */
 export const RecipePicker = () => {
   const [keyword, setKeyword] = useState("");
@@ -87,51 +60,51 @@ export const RecipePicker = () => {
   };
 
   return (
-    <Section top bottom>
-      <Inner variant="hero">
-        <div className={styles.hero}>
-          <hgroup className={styles.hgroup}>
-            <h1 className={styles.title}>今日、何作ろう？</h1>
-            <p className={styles.lead}>
-              登録したYouTubeチャンネルとレシピサイトから、レシピを提案します
-            </p>
-          </hgroup>
-          <search className={styles.search}>
-            <form className={styles.form} onSubmit={handleSubmit}>
-              <div className={styles.searchBox}>
-                <Image
-                  src="/images/icons/search.svg"
-                  alt=""
-                  width={20}
-                  height={20}
-                />
-                <input
-                  className={styles.input}
-                  id="keyword"
-                  type="text"
-                  aria-label="使いたい食材や料理名"
-                  value={keyword}
-                  onChange={(event) => setKeyword(event.target.value)}
-                  placeholder="例：豚バラ キャベツ"
-                  autoComplete="off"
-                />
-              </div>
-              <p className={styles.text}>※入れなくても選べます</p>
-              <MealToggle meal={meal} onChange={setMeal} />
-              <button
-                className={styles.submit}
-                type="submit"
-                disabled={isPending}
-              >
-                {isPending ? "選んでいます…" : "レシピを選ぶ"}
-              </button>
-            </form>
-          </search>
-        </div>
-      </Inner>
-      <Inner>
-        <PickResult state={state} />
-      </Inner>
-    </Section>
+    <>
+      <Section top bottom>
+        <Inner variant="hero">
+          <div className={styles.hero}>
+            <hgroup className={styles.hgroup}>
+              <h1 className={styles.title}>今日、何作ろう？</h1>
+              <p className={styles.lead}>
+                登録したYouTubeチャンネルとレシピサイトから、レシピを提案します
+              </p>
+            </hgroup>
+            <search className={styles.search}>
+              <form className={styles.form} onSubmit={handleSubmit}>
+                <div className={styles.searchBox}>
+                  <Image
+                    src="/images/icons/search.svg"
+                    alt=""
+                    width={20}
+                    height={20}
+                  />
+                  <input
+                    className={styles.input}
+                    id="keyword"
+                    type="text"
+                    aria-label="使いたい食材や料理名"
+                    value={keyword}
+                    onChange={(event) => setKeyword(event.target.value)}
+                    placeholder="例：豚バラ キャベツ"
+                    autoComplete="off"
+                  />
+                </div>
+                <p className={styles.text}>※入れなくても選べます</p>
+                <MealToggle meal={meal} onChange={setMeal} />
+                <button
+                  className={styles.submit}
+                  type="submit"
+                  disabled={isPending}
+                >
+                  {isPending ? "選んでいます…" : "レシピを選ぶ"}
+                </button>
+              </form>
+            </search>
+          </div>
+        </Inner>
+      </Section>
+      <SuggestedRecipes state={state} />
+    </>
   );
 };
