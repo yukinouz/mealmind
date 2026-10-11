@@ -10,7 +10,7 @@
 | 提案するレシピの材料を、概要欄やクラシルのページから書き出す                | `suggest` スキル          |
 | 「作る」と決めたレシピのメイン食材を、最大3つ選んで記録する                 | `suggest` スキル          |
 | 夜ごはん・昼ごはんごとに、ジャンルで候補を絞り込む                          | `scripts/pick-recipe.sh`  |
-| 条件に合うレシピ動画を、重み付きで1件抽選する                               | `scripts/pick-recipe.sh`  |
+| 条件に合うレシピ動画を、重み付きで1件（Web の画面では最大5件）抽選する      | `scripts/pick-recipe.sh`  |
 | 登録したチャンネルの動画一覧を取得して保存する                              | `scripts/fetch-videos.sh` |
 
 ### 提案の流れ
@@ -69,13 +69,14 @@ scripts/fetch-videos.sh ryuji   # sources.json の id を指定する
 
 `data/cache/videos-<id>.json` に保存されます。新しい動画を反映したいときに、もう一度実行してください（目安は週1回）。
 
-### レシピを1件抽選する
+### レシピを抽選する
 
 ```sh
 scripts/pick-recipe.sh                  # キーワードなし
 scripts/pick-recipe.sh 鯖 味噌          # すべてのキーワードを含む動画から選ぶ
 scripts/pick-recipe.sh --meal lunch     # 昼ごはんとして選ぶ（省略時は夜ごはん）
 scripts/pick-recipe.sh 鶏むね --skip <動画IDまたはURL>   # スキップした動画を除く
+scripts/pick-recipe.sh 豚バラ --count 5           # YouTube だけから、重ならないように最大5件選ぶ（Web の画面用）
 ```
 
 結果は JSON で出力され、`type` は次のどれかです。
@@ -85,6 +86,8 @@ scripts/pick-recipe.sh 鶏むね --skip <動画IDまたはURL>   # スキップ�
 | `youtube`   | 候補の動画（タイトル・URL・概要欄など）                                                                      |
 | `kurashiru` | クラシルが選ばれた（サイトでの検索は呼び出し側が行う）。キーワードもジャンルの絞り込みもないときは選ばれない |
 | `none`      | 条件に合う候補がない                                                                                         |
+
+`--count` を付けたときは、`youtube` の結果の配列を出力します。候補が足りなければ件数が減り、1件もなければ空の配列（`[]`）です。
 
 ## データファイル
 

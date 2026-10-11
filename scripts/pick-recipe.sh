@@ -1,23 +1,26 @@
 #!/usr/bin/env bash
-# 提案するレシピを1件だけ抽選して JSON で出力する。
+# 提案するレシピを抽選して JSON で出力する。ふだんは1件、--count を付けると複数件。
 #
-# 使い方: scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDまたはURL ...]
+# 使い方: scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDまたはURL ...] [--count 件数]
 #   例:   scripts/pick-recipe.sh
 #         scripts/pick-recipe.sh 鯖 味噌
 #         scripts/pick-recipe.sh --meal lunch
 #         scripts/pick-recipe.sh 鶏むね --skip abc123 --skip def456
+#         scripts/pick-recipe.sh 豚バラ --count 5
 #
 # - キーワードが複数あるときは、すべてを含む動画だけが候補になる
 # - --meal は preferences.json の meals のキー（省略時は dinner）。その食事の条件をタイトルに当てる
 #     onlyGenres  … このジャンルの言葉をどれか含む動画だけを候補にする
 #     avoidGenres / avoidTitleKeywords … これらの言葉を含む動画を外す
 # - --skip はこの会話でスキップした動画（何度でも指定できる）
+# - --count は Web の画面用。YouTube だけから、同じ動画が重ならないように最大その件数を選ぶ
 #
-# 出力（type で分岐する）:
+# 出力（--count なし。type で分岐する）:
 #   youtube   … 候補の動画（タイトル・URL・概要欄など）
 #   kurashiru … クラシルが選ばれた（サイトでの検索は呼び出し側が行う）
 #               検索に使う言葉（キーワードかジャンルの言葉）がないときは、クラシルを抽選しない
 #   none      … 条件に合う候補がない
+# 出力（--count あり）: youtube の結果の配列。候補が足りなければ件数は減り、なければ空の配列
 set -euo pipefail
 
 readonly ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -28,6 +31,7 @@ readonly CACHE_DIR="$DATA_DIR/cache"
 keywords=()
 skips=()
 meal="dinner"
+count=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --meal)
@@ -38,6 +42,11 @@ while [[ $# -gt 0 ]]; do
     --skip)
       [[ $# -lt 2 ]] && { echo "エラー: --skip の後に動画IDかURLを指定してください" >&2; exit 1; }
       skips+=("$2")
+      shift 2
+      ;;
+    --count)
+      [[ $# -lt 2 || ! "$2" =~ ^[1-9][0-9]*$ ]] && { echo "エラー: --count の後に1以上の件数を指定してください" >&2; exit 1; }
+      count="$2"
       shift 2
       ;;
     *)
@@ -77,8 +86,10 @@ if [[ -n "$unknown_genres" ]]; then
 fi
 
 # 抽選用の乱数（0以上1未満）をまとめて作る。jq には乱数を作る機能がないため
+# 1件の抽選に使う数は RANDOMS_PER_PICK 個まで（チャンネルの抽選し直しを含む）
+readonly RANDOMS_PER_PICK=100
 seed="$(od -An -N4 -tu4 /dev/urandom | tr -d ' ')"
-randoms="$(awk -v seed="$seed" 'BEGIN { srand(seed); printf "["; for (i = 0; i < 100; i++) printf "%s%f", (i ? "," : ""), rand(); print "]" }')"
+randoms="$(awk -v seed="$seed" -v n="$(( ${count:-1} * RANDOMS_PER_PICK ))" 'BEGIN { srand(seed); printf "["; for (i = 0; i < n; i++) printf "%s%f", (i ? "," : ""), rand(); print "]" }')"
 
 shopt -s nullglob
 cache_files=("$CACHE_DIR"/videos-*.json)
@@ -94,6 +105,8 @@ jq -n \
   --argjson keywords "$(to_json_array ${keywords[@]+"${keywords[@]}"})" \
   --argjson skips "$(to_json_array ${skips[@]+"${skips[@]}"})" \
   --argjson randoms "$randoms" \
+  --argjson randomsPerPick "$RANDOMS_PER_PICK" \
+  --arg count "$count" \
   '
   # 分量を表す言葉。概要欄に3つ以上あればレシピ動画とみなす
   def amount_pattern:
@@ -151,15 +164,16 @@ jq -n \
       | map(select(.w > 0));
 
     # チャンネルを抽選し、候補がなければそのチャンネルを外して抽選し直す
-    def try_sources($remaining; $i):
+    # cands はチャンネルの候補を返すフィルタ。$picked（この実行ですでに選んだ URL）は外す
+    def try_sources($remaining; $i; $picked; cands):
       if ($remaining | length) == 0 then {type: "none"}
       else
         pick_weighted($remaining; $randoms[$i]) as $source
         | if $source.type == "kurashiru" then
             {type: "kurashiru", sourceId: $source.id, channelName: $source.name, siteUrl: $source.url, keywords: $keywords, meal: $meal, avoidTitleKeywords: $avoidTitles, onlyTitleKeywords: $onlyTitles}
           else
-            candidates($source) as $cands
-            | if ($cands | length) == 0 then try_sources($remaining - [$source]; $i + 2)
+            ($source | cands | map(select(.url as $u | $picked | index($u) | not))) as $cands
+            | if ($cands | length) == 0 then try_sources($remaining - [$source]; $i + 2; $picked; cands)
               else
                 pick_weighted($cands; $randoms[$i + 1]) as $video
                 | {
@@ -179,7 +193,27 @@ jq -n \
           end
       end;
 
+    # 1件ずつ選び、選んだ動画を外しながら $n 件まで続ける。候補がなくなったらそこで止める
+    def pick_many($sources; $n; $k; $picked; cands):
+      if $n == 0 then []
+      else
+        try_sources($sources; $k * $randomsPerPick; $picked; cands) as $result
+        | if $result.type == "none" then []
+          else [$result] + pick_many($sources; $n - 1; $k + 1; $picked + [$result.url]; cands)
+          end
+      end;
+
+    ($sources.sources | map(select(.isEnabled != false) | . + {w: .weight})) as $enabled
     # クラシルはトップページから個別レシピを取れないので、検索に使う言葉がなければ外す
-    (($keywords | length) > 0 or ($onlyTitles | length) > 0) as $canSearchKurashiru
-    | try_sources($sources.sources | map(select(.isEnabled != false and (.type != "kurashiru" or $canSearchKurashiru)) | . + {w: .weight}); 0)
+    | (($keywords | length) > 0 or ($onlyTitles | length) > 0) as $canSearchKurashiru
+    | if $count == "" then
+        # 1件だけなので、抽選したチャンネルの候補だけをその場で作る
+        try_sources($enabled | map(select(.type != "kurashiru" or $canSearchKurashiru)); 0; []; candidates(.))
+      else
+        # 画面ではクラシルを検索できないので、YouTube だけから選ぶ
+        # 何度も抽選するので、各チャンネルの候補は最初に1回だけ作る
+        ($enabled | map(select(.type != "kurashiru"))) as $youtubeSources
+        | ($youtubeSources | map({key: .id, value: candidates(.)}) | from_entries) as $candidatesById
+        | pick_many($youtubeSources; ($count | tonumber); 0; []; $candidatesById[.id])
+      end
   ' ${cache_files[@]+"${cache_files[@]}"} </dev/null

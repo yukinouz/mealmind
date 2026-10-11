@@ -15,6 +15,9 @@ const CHOICES: { value: Decision; label: string }[] = [
   { value: "skip", label: "スキップ" },
 ];
 
+// カードが順番に出てくるときの、1枚ごとの遅れ
+const ENTER_DELAY_MS = 70;
+
 interface ChoiceButtonsProps {
   title: string;
   decision: Decision | undefined;
@@ -79,16 +82,6 @@ const SuggestedContent = ({ state }: SuggestedRecipesProps) => {
       </Notice>
     );
   }
-  if (state.type === "kurashiru") {
-    return (
-      <Notice>
-        クラシルが選ばれました（画面からの検索はまだできません）。
-        <a href={state.siteUrl} target="_blank" rel="noopener noreferrer">
-          {state.channelName}
-        </a>
-      </Notice>
-    );
-  }
 
   /** 選んだものを記録し、取り消したときは消す */
   const changeDecision = (id: string, decision: Decision | undefined) => {
@@ -102,22 +95,29 @@ const SuggestedContent = ({ state }: SuggestedRecipesProps) => {
       <h2 className={styles.heading}>提案したレシピ</h2>
       <ul className={styles.list}>
         {/* key を動画ごとに変えるので、別の動画が選ばれるたびに出てくる動きがやり直される */}
-        <li className={styles.item} key={state.videoId}>
-          <RecipeCard
-            recipe={{
-              id: state.videoId,
-              title: state.title,
-              url: state.url,
-              channel: state.channelName,
-              meals: [state.meal],
-            }}
-          />
-          <ChoiceButtons
-            title={state.title}
-            decision={decisions[state.videoId]}
-            onChange={(decision) => changeDecision(state.videoId, decision)}
-          />
-        </li>
+        {state.recipes.map((recipe, index) => (
+          <li
+            className={styles.item}
+            key={recipe.videoId}
+            // 1枚ずつ少し遅らせて、順番に出てくるようにする
+            style={{ animationDelay: `${index * ENTER_DELAY_MS}ms` }}
+          >
+            <RecipeCard
+              recipe={{
+                id: recipe.videoId,
+                title: recipe.title,
+                url: recipe.url,
+                channel: recipe.channelName,
+                meals: [recipe.meal],
+              }}
+            />
+            <ChoiceButtons
+              title={recipe.title}
+              decision={decisions[recipe.videoId]}
+              onChange={(decision) => changeDecision(recipe.videoId, decision)}
+            />
+          </li>
+        ))}
       </ul>
     </>
   );

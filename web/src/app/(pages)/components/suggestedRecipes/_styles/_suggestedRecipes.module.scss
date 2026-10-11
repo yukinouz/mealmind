@@ -73,9 +73,8 @@
   }
 
   &[data-choice="skip"][aria-pressed="true"] {
-    border-color: variables.$color-gray300;
-    background-color: variables.$color-gray100;
-    color: variables.$color-gray700;
+    border-color: variables.$color-gray500;
+    background-color: variables.$color-gray500;
   }
 
   @media (hover: hover) {

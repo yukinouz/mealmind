@@ -1,11 +1,12 @@
 "use server";
 
-import { type PickedRecipe, pickRecipe } from "@/lib/pick-recipe";
+import { type PickedRecipe, pickRecipes } from "@/lib/pick-recipe";
 import type { Meal } from "@/lib/recipes";
 
 export type PickState =
   | { type: "idle" }
-  | PickedRecipe
+  | { type: "picked"; recipes: PickedRecipe[] }
+  | { type: "none" }
   | { type: "error"; message: string };
 
 export interface PickInput {
@@ -38,7 +39,10 @@ export const pickRecipeAction = async (
   }
 
   try {
-    return await pickRecipe({ keywords: toKeywords(keyword), meal });
+    const recipes = await pickRecipes({ keywords: toKeywords(keyword), meal });
+    if (recipes.length === 0) return { type: "none" };
+
+    return { type: "picked", recipes };
   } catch (error) {
     // スクリプトのエラーメッセージ（標準エラー出力）があれば、それを表示する
     const stderr = (error as { stderr?: string }).stderr?.trim();
