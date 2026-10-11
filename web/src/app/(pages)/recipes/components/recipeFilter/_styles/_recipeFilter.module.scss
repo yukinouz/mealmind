@@ -1,3 +1,4 @@
+@use "responsive";
 @use "variables";
 
 .filter {
@@ -196,6 +197,11 @@
   border: 1px solid variables.$color-border;
   border-radius: variables.$radius-pill;
   background-color: variables.$color-white;
+
+  // 狭い画面では折り返した行いっぱいに広げる
+  @include responsive.mq-max(md) {
+    flex-basis: 100%;
+  }
 
   &:focus-within {
     border-color: variables.$color-orange500;

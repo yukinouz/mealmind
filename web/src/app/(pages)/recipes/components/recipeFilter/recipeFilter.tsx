@@ -16,6 +16,7 @@ import {
   clearGroups,
   type RecipeFilter as Filter,
   hasAnyFilter,
+  MAX_QUERY_LENGTH,
   type RecipeOrder,
   toggleValue,
   toRecipeQuery,
@@ -151,8 +152,17 @@ const OrderToggle = ({ order, onChange }: OrderToggleProps) => {
  */
 const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
   const [text, setText] = useState(query);
+  // 日本語の変換中は、確定するまで検索しない
+  const [isComposing, setIsComposing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   // 最後に自分で渡した言葉。URL がこれと違う値に変わったら、外から変えられたと分かる
   const sentQueryRef = useRef(query);
+  // 親が描き直されるたびに待ち時間がやり直しにならないよう、最新の onSearch は ref で持つ
+  const onSearchRef = useRef(onSearch);
+
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
 
   useEffect(() => {
     if (query === sentQueryRef.current) return;
@@ -162,20 +172,22 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
   }, [query]);
 
   useEffect(() => {
-    if (text.trim() === sentQueryRef.current) return;
+    const nextQuery = text.trim();
+    if (isComposing || nextQuery === sentQueryRef.current) return;
 
     const timer = setTimeout(() => {
-      sentQueryRef.current = text.trim();
-      onSearch(text.trim());
+      sentQueryRef.current = nextQuery;
+      onSearchRef.current(nextQuery);
     }, SEARCH_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [text, onSearch]);
+  }, [text, isComposing]);
 
-  /** 「×」で消したときは、待たずにすぐ反映する */
+  /** 「×」で消したときは、待たずにすぐ反映し、続けて打てるよう入力欄に戻る */
   const clear = () => {
     setText("");
     sentQueryRef.current = "";
     onSearch("");
+    inputRef.current?.focus();
   };
 
   return (
@@ -183,18 +195,23 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
       <Image
         className={styles.searchIcon}
         src="/images/icons/search.svg"
-        alt="虫眼鏡のアイコン"
+        alt=""
         width={20}
         height={20}
       />
       <input
         className={styles.searchInput}
+        ref={inputRef}
         type="search"
         aria-label="レシピを検索"
         placeholder="料理名・食材・チャンネル名で検索"
         autoComplete="off"
+        // URL で受け取れる長さと揃える。超えると、戻ってきた値で欄が切られてしまう
+        maxLength={MAX_QUERY_LENGTH}
         value={text}
         onChange={(event) => setText(event.target.value)}
+        onCompositionStart={() => setIsComposing(true)}
+        onCompositionEnd={() => setIsComposing(false)}
       />
       {text !== "" && (
         <button

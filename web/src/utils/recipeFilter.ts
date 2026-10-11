@@ -30,7 +30,7 @@ export const DEFAULT_FILTER: RecipeFilter = {
 
 const MEALS: readonly string[] = ["lunch", "dinner"] satisfies Meal[];
 // 検索の言葉の長さの上限。URL から来るので、長すぎる値は切る
-const MAX_QUERY_LENGTH = 100;
+export const MAX_QUERY_LENGTH = 100;
 // チャンネルの id は sources.json の id。URL から来るので、使える文字を絞る
 const CHANNEL_ID_PATTERN = /^[a-z0-9-]+$/i;
 
