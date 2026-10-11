@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { parseRecipeFilter, type SearchParams } from "@/utils/recipeFilter";
 import { Inner } from "../components/inner/inner";
 import { PageHeader } from "../components/pageHeader/pageHeader";
 import { Section } from "../components/section/section";
@@ -9,13 +10,20 @@ export const metadata: Metadata = {
   title: "レシピ一覧",
 };
 
-export default function RecipesPage() {
+interface RecipesPageProps {
+  searchParams: Promise<SearchParams>;
+}
+
+// 絞り込みの条件は URL（?meal=lunch&cuisine=chuka など）から読む
+// searchParams を使うので、開くたびにサーバーで作り直される
+export default async function RecipesPage({ searchParams }: RecipesPageProps) {
+  const filter = parseRecipeFilter(await searchParams);
   return (
     <main>
       <Section top bottom>
         <Inner>
           <PageHeader title="レシピ一覧" />
-          <Recipes />
+          <Recipes filter={filter} />
         </Inner>
       </Section>
     </main>

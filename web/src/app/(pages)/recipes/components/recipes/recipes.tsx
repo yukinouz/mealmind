@@ -1,21 +1,56 @@
-import { connection } from "next/server";
+import Link from "next/link";
 import { RecipeCard } from "@/app/(pages)/components/recipeCard/recipeCard";
 import { findUnfilled, readRecipes, sortByNewest } from "@/lib/recipes";
+import { readChannels } from "@/lib/sources";
+import {
+  type RecipeFilter as Filter,
+  filterRecipes,
+} from "@/utils/recipeFilter";
 import { IngredientsFiller } from "../ingredientsFiller/ingredientsFiller";
+import { RecipeFilter } from "../recipeFilter/recipeFilter";
 import styles from "./_styles/_recipes.module.scss";
 
-const Recipes = async () => {
-  // 開くたびに recipes.json を読み直す（build 時に中身を固定しない）
-  await connection();
+interface RecipesProps {
+  filter: Filter;
+}
+
+/** 絞り込んだ結果が0件のときのお知らせ。「条件をすべて解除」は条件のない URL へ移る */
+const NoMatch = () => {
+  return (
+    <div className={styles.noMatch}>
+      <p>条件に合うレシピが見つかりませんでした。</p>
+      <Link className={styles.clearAll} href="/recipes" scroll={false}>
+        条件をすべて解除
+      </Link>
+    </div>
+  );
+};
+
+/** レシピ一覧の中身。絞り込み欄と、条件に合うレシピのカード */
+const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
+  const [allRecipes, channels, unfilled] = await Promise.all([
+    readRecipes(),
+    readChannels(),
+    // recipes.json に埋めるものがあるときだけ、Claude を呼ぶ（excluded.json は非表示のレシピのページで埋める）
+    findUnfilled("recipes"),
+  ]);
+  if (allRecipes.length === 0) return <p>まだ登録されたレシピがありません。</p>;
+
+  // URL にある sources.json にないチャンネルは捨てる。残すと、どのボタンも選ばれていない見た目になる
+  const channelIds = new Set(channels.map((channel) => channel.id));
+  const filter = {
+    ...requestedFilter,
+    channels: requestedFilter.channels.filter((id) => channelIds.has(id)),
+  };
+
   // デフォルトは追加が新しい順
-  const recipes = sortByNewest(await readRecipes());
-  // recipes.json に埋めるものがあるときだけ、Claude を呼ぶ（excluded.json は非表示のレシピのページで埋める）
-  const hasUnfilled = (await findUnfilled("recipes")).length > 0;
+  const recipes = sortByNewest(filterRecipes(allRecipes, filter));
   return (
     <>
-      {hasUnfilled && <IngredientsFiller target="recipes" />}
+      {unfilled.length > 0 && <IngredientsFiller target="recipes" />}
+      <RecipeFilter filter={filter} channels={channels} />
       {recipes.length === 0 ? (
-        <p>まだ登録されたレシピがありません。</p>
+        <NoMatch />
       ) : (
         <ul className={styles.list}>
           {recipes.map((recipe) => (
