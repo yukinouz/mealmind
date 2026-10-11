@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { RecipeCard } from "@/app/(pages)/components/recipeCard/recipeCard";
-import { findUnfilled, readRecipes, sortByNewest } from "@/lib/recipes";
+import { findUnfilled, readRecipes } from "@/lib/recipes";
 import { readChannels } from "@/lib/sources";
 import {
+  DEFAULT_FILTER,
   type RecipeFilter as Filter,
   filterRecipes,
+  type RecipeOrder,
+  sortRecipes,
+  toRecipeQuery,
 } from "@/utils/recipeFilter";
 import { IngredientsFiller } from "../ingredientsFiller/ingredientsFiller";
 import { RecipeFilter } from "../recipeFilter/recipeFilter";
@@ -14,12 +18,21 @@ interface RecipesProps {
   filter: Filter;
 }
 
-/** 絞り込んだ結果が0件のときのお知らせ。「条件をすべて解除」は条件のない URL へ移る */
-const NoMatch = () => {
+interface NoMatchProps {
+  order: RecipeOrder;
+}
+
+/** 絞り込んだ結果が0件のときのお知らせ。「条件をすべて解除」は、並び順だけを残した URL へ移る */
+const NoMatch = ({ order }: NoMatchProps) => {
+  const query = toRecipeQuery({ ...DEFAULT_FILTER, order });
   return (
     <div className={styles.noMatch}>
       <p>条件に合うレシピが見つかりませんでした。</p>
-      <Link className={styles.clearAll} href="/recipes" scroll={false}>
+      <Link
+        className={styles.clearAll}
+        href={query === "" ? "/recipes" : `/recipes?${query}`}
+        scroll={false}
+      >
         条件をすべて解除
       </Link>
     </div>
@@ -43,14 +56,14 @@ const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
     channels: requestedFilter.channels.filter((id) => channelIds.has(id)),
   };
 
-  // デフォルトは追加が新しい順
-  const recipes = sortByNewest(filterRecipes(allRecipes, filter));
+  // 並び順の既定は、追加が新しい順
+  const recipes = sortRecipes(filterRecipes(allRecipes, filter), filter.order);
   return (
     <>
       {unfilled.length > 0 && <IngredientsFiller target="recipes" />}
       <RecipeFilter filter={filter} channels={channels} />
       {recipes.length === 0 ? (
-        <NoMatch />
+        <NoMatch order={filter.order} />
       ) : (
         <ul className={styles.list}>
           {recipes.map((recipe) => (

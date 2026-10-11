@@ -93,3 +93,85 @@
     }
   }
 }
+
+// ♡のみ・並び順の行。絞り込み欄と同じ役割の中なので、間は 12px
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.space(12);
+  margin-top: variables.space(12);
+}
+
+// 押せるものの高さ（小）38px
+.favorite {
+  display: flex;
+  align-items: center;
+  gap: variables.space(8);
+  min-height: 38px;
+  padding-inline: variables.space(16);
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+  font-size: 14px;
+  font-weight: 700;
+
+  > svg {
+    fill: none;
+    stroke: variables.$color-pink500;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &[aria-pressed="true"] {
+    border-color: variables.$color-pink500;
+    background-color: variables.$color-pink100;
+    color: variables.$color-pink800;
+
+    > svg {
+      fill: variables.$color-pink500;
+    }
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.order {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid variables.$color-border;
+  border-radius: 50%;
+  background-color: variables.$color-white;
+
+  > svg {
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+// いまの向きの矢印を濃く、もう片方を薄く出す
+.arrowUp,
+.arrowDown {
+  stroke: variables.$color-brown400;
+}
+
+.order[data-order="newest"] .arrowDown,
+.order[data-order="oldest"] .arrowUp {
+  stroke: variables.$color-black;
+}

@@ -240,13 +240,6 @@ export const fillIngredients = (
     });
   });
 
-/** 追加した日時（registeredAt）が新しい順に並べた、新しい配列を返す */
-// 時差の表記が違っても正しく比べられるよう、日時に変換してから比べる
-export const sortByNewest = (recipes: Recipe[]): Recipe[] =>
-  recipes.toSorted(
-    (a, b) => Date.parse(b.registeredAt) - Date.parse(a.registeredAt),
-  );
-
 /**
  * メイン食材か料理の系統がまだない YouTube のレシピか。クラシルは説明文がないので埋められない
  * 料理の系統は、正しくない値が入っているときも埋め直す
