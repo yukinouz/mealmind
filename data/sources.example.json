@@ -5,6 +5,7 @@
       "id": "ryuji",
       "type": "youtube",
       "name": "料理研究家リュウジのバズレシピ",
+      "shortName": "リュウジ",
       "handle": "@ryuji825",
       "channelId": "UCW01sMEVYQdhcvkrhbxdBpw",
       "weight": 90,
@@ -14,6 +15,7 @@
       "id": "kurashiru",
       "type": "kurashiru",
       "name": "クラシル",
+      "shortName": "クラシル",
       "url": "https://www.kurashiru.com",
       "weight": 10,
       "isEnabled": true
