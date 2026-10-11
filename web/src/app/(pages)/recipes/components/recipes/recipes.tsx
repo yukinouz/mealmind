@@ -15,6 +15,8 @@ import {
 import { IngredientsFiller } from "../ingredientsFiller/ingredientsFiller";
 import { Pagination } from "../pagination/pagination";
 import { RecipeFilter } from "../recipeFilter/recipeFilter";
+import { ManageBanner } from "../recipeManage/manageBanner";
+import { ManageItem } from "../recipeManage/manageItem";
 import styles from "./_styles/_recipes.module.scss";
 
 interface RecipesProps {
@@ -43,7 +45,7 @@ const NoMatch = ({ order, view }: NoMatchProps) => {
   );
 };
 
-/** レシピ一覧の中身。絞り込み欄と、条件に合うレシピのカード（1ページ9件）とページ送り */
+/** レシピ一覧の中身。絞り込み欄と、条件に合うレシピのカード（1ページ9件）とページ送り。「レシピを整理する」で一覧から削除できる */
 const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
   const [allRecipes, channels, unfilled] = await Promise.all([
     readRecipes(),
@@ -68,6 +70,7 @@ const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
     <>
       {unfilled.length > 0 && <IngredientsFiller target="recipes" />}
       <RecipeFilter filter={filter} channels={channels} />
+      <ManageBanner />
       {pageRecipes.length === 0 ? (
         <NoMatch order={filter.order} view={filter.view} />
       ) : (
@@ -75,11 +78,17 @@ const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
           <ul className={filter.view === "list" ? styles.rows : styles.list}>
             {pageRecipes.map((recipe) => (
               <li key={recipe.id}>
-                <RecipeCard
-                  recipe={recipe}
-                  isFavorite={recipe.isFavorite}
+                <ManageItem
+                  recipeId={recipe.id}
+                  title={recipe.title}
                   layout={filter.view}
-                />
+                >
+                  <RecipeCard
+                    recipe={recipe}
+                    isFavorite={recipe.isFavorite}
+                    layout={filter.view}
+                  />
+                </ManageItem>
               </li>
             ))}
           </ul>
