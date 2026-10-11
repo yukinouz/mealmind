@@ -4,7 +4,6 @@ import { Inner } from "@/app/(pages)/components/inner/inner";
 import { Gnav } from "../gnav/gnav";
 import styles from "./_styles/_header.module.scss";
 
-/** サイト共通のヘッダー。左にロゴ（トップへのリンク）、右にメニューを置く。 */
 const Header = () => {
   return (
     <header className={styles.header}>
