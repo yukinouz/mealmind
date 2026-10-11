@@ -90,6 +90,9 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
   /** 条件を変えて URL を書き換える。履歴は増やさず、スクロール位置もそのままにする */
   const changeFilter = (next: Filter) => {
     const query = toRecipeQuery(next);
+    // 押された「すべて」を押し直したときなど、条件が変わらなければ何もしない
+    if (query === toRecipeQuery(shownFilter)) return;
+
     startTransition(() => {
       setShownFilter(next);
       router.replace(query === "" ? pathname : `${pathname}?${query}`, {

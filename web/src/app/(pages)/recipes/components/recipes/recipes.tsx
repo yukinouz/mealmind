@@ -27,7 +27,7 @@ const NoMatch = () => {
 };
 
 /** レシピ一覧の中身。絞り込み欄と、条件に合うレシピのカード */
-const Recipes = async ({ filter }: RecipesProps) => {
+const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
   const [allRecipes, channels, unfilled] = await Promise.all([
     readRecipes(),
     readChannels(),
@@ -35,6 +35,13 @@ const Recipes = async ({ filter }: RecipesProps) => {
     findUnfilled("recipes"),
   ]);
   if (allRecipes.length === 0) return <p>まだ登録されたレシピがありません。</p>;
+
+  // URL にある sources.json にないチャンネルは捨てる。残すと、どのボタンも選ばれていない見た目になる
+  const channelIds = new Set(channels.map((channel) => channel.id));
+  const filter = {
+    ...requestedFilter,
+    channels: requestedFilter.channels.filter((id) => channelIds.has(id)),
+  };
 
   // デフォルトは追加が新しい順
   const recipes = sortByNewest(filterRecipes(allRecipes, filter));

@@ -50,7 +50,7 @@
   border-top: 1px solid variables.$color-divider-light;
 }
 
-// legend は flex の中に並ばないので、float で行の中に置く
+// float を付けると枠線の上の legend ではなくなり、flex の項目として選択肢と横に並ぶ
 .label {
   float: left;
   flex: 0 0 96px;
