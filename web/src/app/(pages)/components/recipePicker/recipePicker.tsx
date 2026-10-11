@@ -74,7 +74,7 @@ export const RecipePicker = () => {
               <form className={styles.form} onSubmit={handleSubmit}>
                 <div className={styles.searchBox}>
                   <Image
-                    src="/images/icons/search.svg"
+                    src="/images/icon/icon-search.svg"
                     alt=""
                     width={20}
                     height={20}

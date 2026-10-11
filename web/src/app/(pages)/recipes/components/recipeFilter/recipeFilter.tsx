@@ -220,7 +220,7 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
     <search className={styles.search}>
       <Image
         className={styles.searchIcon}
-        src="/images/icons/search.svg"
+        src="/images/icon/icon-search.svg"
         alt=""
         width={20}
         height={20}
