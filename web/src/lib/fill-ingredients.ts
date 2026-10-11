@@ -11,6 +11,7 @@ import {
   readMainIngredientNames,
   type UnfilledRecipe,
 } from "@/lib/recipes";
+import { CUISINES, isCuisine } from "@/utils/cuisine";
 
 const execFileAsync = promisify(execFile);
 
@@ -23,6 +24,8 @@ const CACHE_DIR = path.join(ROOT_DIR, "data", "cache");
 // 試したときは1件で約7秒。件数が多いときのために余裕を持たせる
 const TIMEOUT_MS = 3 * 60 * 1000;
 const MAX_MAIN_INGREDIENTS = 3;
+// 1回の claude -p に渡す件数。多すぎると時間切れになるので分けて送る（17件で約70秒）
+const BATCH_SIZE = 10;
 
 // Claude に返させる JSON の形
 const OUTPUT_SCHEMA = {
@@ -33,7 +36,7 @@ const OUTPUT_SCHEMA = {
       type: "array",
       items: {
         type: "object",
-        required: ["id", "ingredients", "mainIngredients"],
+        required: ["id", "ingredients", "mainIngredients", "cuisine"],
         properties: {
           id: { type: "string" },
           ingredients: {
@@ -52,6 +55,7 @@ const OUTPUT_SCHEMA = {
             maxItems: MAX_MAIN_INGREDIENTS,
             items: { type: "string" },
           },
+          cuisine: { type: "string", enum: CUISINES },
         },
       },
     },
@@ -87,7 +91,8 @@ const isFilledIngredients = (value: unknown): value is FilledIngredients => {
     ) &&
     Array.isArray(item.mainIngredients) &&
     item.mainIngredients.length <= MAX_MAIN_INGREDIENTS &&
-    item.mainIngredients.every(isString)
+    item.mainIngredients.every(isString) &&
+    isCuisine(item.cuisine)
   );
 };
 
@@ -138,7 +143,7 @@ const buildPrompt = async (videos: VideoWithDescription[]): Promise<string> => {
   );
 
   return [
-    "次の決まりに従って、それぞれの動画の説明文から ingredients と mainIngredients を書き出し、動画の id ごとに返してください。",
+    "次の決まりに従って、それぞれの動画の説明文から ingredients・mainIngredients・cuisine を書き出し、動画の id ごとに返してください。",
     rules,
     "## 常備している食材",
     JSON.stringify(preferences.pantryIngredients ?? []),
@@ -179,11 +184,17 @@ const askClaude = async (prompt: string): Promise<FilledIngredients[]> => {
   return (output.structured_output?.recipes ?? []).filter(isFilledIngredients);
 };
 
-/** 埋まっていないレシピを探し、Claude に決めてもらって書き込む。埋めた件数を返す */
-const fillOnce = async (target: FillTarget): Promise<number> => {
-  const videos = await withDescriptions(await findUnfilled(target));
-  if (videos.length === 0) return 0;
+/** 一覧を size 件ずつに分ける */
+const chunk = <T>(list: T[], size: number): T[][] =>
+  Array.from({ length: Math.ceil(list.length / size) }, (_, index) =>
+    list.slice(index * size, (index + 1) * size),
+  );
 
+/** 1まとまりを Claude に決めてもらって書き込む。埋めた件数を返す */
+const fillBatch = async (
+  target: FillTarget,
+  videos: VideoWithDescription[],
+): Promise<number> => {
   const results = await askClaude(await buildPrompt(videos));
   // 頼んでいない id が返ってきても書かない
   const ids = new Set(videos.map((video) => video.id));
@@ -192,7 +203,20 @@ const fillOnce = async (target: FillTarget): Promise<number> => {
   return filled.length;
 };
 
-/** 指定したファイルで、材料とメイン食材がまだないレシピを埋める。実行中なら、その結果を待つ */
+/**
+ * 埋まっていないレシピを探し、BATCH_SIZE 件ずつ順番に埋める。埋めた件数を返す
+ * まとまりごとに書き込むので、途中で失敗しても、それまでの分は残る
+ */
+const fillOnce = async (target: FillTarget): Promise<number> => {
+  const videos = await withDescriptions(await findUnfilled(target));
+  let filledCount = 0;
+  for (const batch of chunk(videos, BATCH_SIZE)) {
+    filledCount += await fillBatch(target, batch);
+  }
+  return filledCount;
+};
+
+/** 指定したファイルで、材料・メイン食材・料理の系統がまだないレシピを埋める。実行中なら、その結果を待つ */
 export const fillMissingIngredients = (target: FillTarget): Promise<number> => {
   const current = running.get(target);
   if (current !== undefined) return current;

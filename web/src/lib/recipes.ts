@@ -1,5 +1,6 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { type Cuisine, isCuisine } from "@/utils/cuisine";
 import { toLocalDate, toLocalDateTime } from "@/utils/localDate";
 
 // npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
@@ -18,6 +19,7 @@ export type Recipe = {
   channel: string;
   meals: Meal[];
   mainIngredients?: string[];
+  cuisine?: Cuisine;
   isFavorite: boolean;
   registeredAt: string;
 };
@@ -32,21 +34,22 @@ export interface NewRecipe {
   meal: Meal;
 }
 
-/** 材料とメイン食材を埋めるファイル。recipes はレシピ一覧、excluded は非表示のレシピのページで埋める */
+/** 材料・メイン食材・料理の系統を埋めるファイル。recipes はレシピ一覧、excluded は非表示のレシピのページで埋める */
 export type FillTarget = "recipes" | "excluded";
 
-/** 材料とメイン食材がまだないレシピ（埋めるために使う項目だけ） */
+/** 材料・メイン食材・料理の系統のどれかがまだないレシピ（埋めるために使う項目だけ） */
 export interface UnfilledRecipe {
   id: string;
   title: string;
   sourceId: string;
 }
 
-/** Claude が決めた、1件分の材料とメイン食材 */
+/** Claude が決めた、1件分の材料・メイン食材・料理の系統 */
 export interface FilledIngredients {
   id: string;
   ingredients: { name: string; amount: string }[];
   mainIngredients: string[];
+  cuisine: Cuisine;
 }
 
 // 一覧で使わない項目（材料など）も消さないよう、型で絞らずにそのまま読み書きする
@@ -171,8 +174,8 @@ export const undoReject = (url: string) =>
   });
 
 /**
- * 指定したファイルから、メイン食材がまだない YouTube のレシピを探す
- * 画面から記録したレシピは、材料とメイン食材の項目を持たない（ADR-0010）
+ * 指定したファイルから、メイン食材か料理の系統がまだない YouTube のレシピを探す
+ * 画面から記録したレシピは、材料・メイン食材・料理の系統の項目を持たない（ADR-0010・ADR-0011）
  */
 export const findUnfilled = async (
   target: FillTarget,
@@ -195,23 +198,30 @@ export const readMainIngredientNames = async (): Promise<string[]> => {
   return [...new Set(names)];
 };
 
-/** 指定したファイルに材料とメイン食材を書き込む。読み直したときにすでに埋まっていたレシピには書かない */
+/** 指定したファイルに、まだない項目だけを書き込む。すでにある材料・メイン食材・料理の系統は書き換えない */
 export const fillIngredients = (
   target: FillTarget,
   filled: FilledIngredients[],
 ) =>
   inOrder(async () => {
     const byId = new Map(filled.map((item) => [item.id, item]));
-    /** まだ埋まっていなければ、Claude の結果を足す */
+    /** まだない項目だけに、Claude の結果を足す */
     const fill = (item: JsonRecord): JsonRecord => {
       const result = byId.get(item.id as string);
       if (result === undefined || !isUnfilled(item)) return item;
 
-      return {
-        ...item,
-        ingredients: result.ingredients,
-        mainIngredients: result.mainIngredients,
-      };
+      // 材料とメイン食材はスキルが記録したものを残し、料理の系統だけを足すこともある
+      const ingredients =
+        item.mainIngredients === undefined
+          ? {
+              ingredients: result.ingredients,
+              mainIngredients: result.mainIngredients,
+            }
+          : {};
+      const cuisine = isCuisine(item.cuisine)
+        ? {}
+        : { cuisine: result.cuisine };
+      return { ...item, ...ingredients, ...cuisine };
     };
 
     if (target === "recipes") {
@@ -237,9 +247,12 @@ export const sortByNewest = (recipes: Recipe[]): Recipe[] =>
     (a, b) => Date.parse(b.registeredAt) - Date.parse(a.registeredAt),
   );
 
-/** メイン食材がまだない YouTube のレシピか。クラシルは説明文がないので埋められない */
+/**
+ * メイン食材か料理の系統がまだない YouTube のレシピか。クラシルは説明文がないので埋められない
+ * 料理の系統は、正しくない値が入っているときも埋め直す
+ */
 const isUnfilled = (item: JsonRecord): boolean =>
-  item.mainIngredients === undefined &&
+  (item.mainIngredients === undefined || !isCuisine(item.cuisine)) &&
   typeof item.url === "string" &&
   item.url.startsWith("https://www.youtube.com/watch?v=");
 

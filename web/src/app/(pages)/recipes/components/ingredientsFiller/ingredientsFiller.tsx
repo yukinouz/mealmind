@@ -11,7 +11,7 @@ interface IngredientsFillerProps {
 }
 
 /**
- * 一覧を出したあとに、指定したファイルで材料とメイン食材がまだないレシピを裏で埋める（ADR-0010）
+ * 一覧を出したあとに、指定したファイルで材料・メイン食材・料理の系統がまだないレシピを裏で埋める（ADR-0010・ADR-0011）
  * 埋まったら一覧を読み直して、食材タグを出す。見た目は持たない
  */
 export const IngredientsFiller = ({ target }: IngredientsFillerProps) => {

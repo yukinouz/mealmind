@@ -11,7 +11,7 @@ const isFillTarget = (value: unknown): value is FillTarget =>
   typeof value === "string" && TARGETS.includes(value);
 
 /**
- * ページから呼ばれ、指定したファイルで材料とメイン食材がまだないレシピを埋める（ADR-0010）
+ * ページから呼ばれ、指定したファイルで材料・メイン食材・料理の系統がまだないレシピを埋める（ADR-0010・ADR-0011）
  * サーバーアクションは1つずつ順番に送られ、ハートの記録を待たせてしまうので Route Handler にする
  */
 export const POST = async (request: Request): Promise<Response> => {
