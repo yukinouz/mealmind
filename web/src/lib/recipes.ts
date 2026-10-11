@@ -174,6 +174,35 @@ export const undoReject = (url: string) =>
   });
 
 /**
+ * 指定したレシピを、情報を持ったまま recipes.json から excluded.json へ移す（ADR-0008）
+ * excluded.json に同じ URL があれば、移すほうで置き換える。見つからない id は無視する
+ */
+export const hideRecipes = (ids: string[]) =>
+  inOrder(async () => {
+    const idSet = new Set(ids);
+    const data = await readRecipesFile();
+    const isHidden = (item: JsonRecord) => idSet.has(item.id as string);
+    const excludedAt = toLocalDateTime(new Date());
+    const moved: JsonRecord[] = data.recipes
+      .filter(isHidden)
+      .map((item) => ({ ...item, excludedAt, reason: "hidden" }));
+    if (moved.length === 0) return;
+
+    const excludedData = await readExcludedFile();
+    const movedUrls = new Set(moved.map((item) => item.url));
+    const excluded = [
+      ...excludedData.excluded.filter((item) => !movedUrls.has(item.url)),
+      ...moved,
+    ];
+    // 途中で止まっても消えないよう、先に移し先へ書いてから元を消す
+    await writeJsonSafely(EXCLUDED_PATH, { ...excludedData, excluded });
+    await writeJsonSafely(RECIPES_PATH, {
+      ...data,
+      recipes: data.recipes.filter((item) => !isHidden(item)),
+    });
+  });
+
+/**
  * 指定したファイルから、メイン食材か料理の系統がまだない YouTube のレシピを探す
  * 画面から記録したレシピは、材料・メイン食材・料理の系統の項目を持たない（ADR-0010・ADR-0011）
  */
