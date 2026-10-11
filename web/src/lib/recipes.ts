@@ -1,5 +1,6 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { type Cuisine, isCuisine } from "@/utils/cuisine";
 import { toLocalDate, toLocalDateTime } from "@/utils/localDate";
 
 // npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
@@ -8,9 +9,6 @@ const RECIPES_PATH = path.join(DATA_DIR, "recipes.json");
 const EXCLUDED_PATH = path.join(DATA_DIR, "excluded.json");
 
 export type Meal = "lunch" | "dinner";
-
-/** 料理の系統。画面では「ジャンル」と表示する（ADR-0011） */
-export type Cuisine = "washoku" | "yoshoku" | "chuka" | "other";
 
 // data/recipes.json の1件の形（一覧で使う項目だけ）
 export type Recipe = {
@@ -220,8 +218,9 @@ export const fillIngredients = (
               mainIngredients: result.mainIngredients,
             }
           : {};
-      const cuisine =
-        item.cuisine === undefined ? { cuisine: result.cuisine } : {};
+      const cuisine = isCuisine(item.cuisine)
+        ? {}
+        : { cuisine: result.cuisine };
       return { ...item, ...ingredients, ...cuisine };
     };
 
@@ -248,9 +247,12 @@ export const sortByNewest = (recipes: Recipe[]): Recipe[] =>
     (a, b) => Date.parse(b.registeredAt) - Date.parse(a.registeredAt),
   );
 
-/** メイン食材か料理の系統がまだない YouTube のレシピか。クラシルは説明文がないので埋められない */
+/**
+ * メイン食材か料理の系統がまだない YouTube のレシピか。クラシルは説明文がないので埋められない
+ * 料理の系統は、正しくない値が入っているときも埋め直す
+ */
 const isUnfilled = (item: JsonRecord): boolean =>
-  (item.mainIngredients === undefined || item.cuisine === undefined) &&
+  (item.mainIngredients === undefined || !isCuisine(item.cuisine)) &&
   typeof item.url === "string" &&
   item.url.startsWith("https://www.youtube.com/watch?v=");
 
