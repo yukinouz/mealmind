@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import {
+  type Cuisine,
   type FilledIngredients,
   type FillTarget,
   fillIngredients,
@@ -23,6 +24,12 @@ const CACHE_DIR = path.join(ROOT_DIR, "data", "cache");
 // 試したときは1件で約7秒。件数が多いときのために余裕を持たせる
 const TIMEOUT_MS = 3 * 60 * 1000;
 const MAX_MAIN_INGREDIENTS = 3;
+const CUISINES: readonly string[] = [
+  "washoku",
+  "yoshoku",
+  "chuka",
+  "other",
+] satisfies Cuisine[];
 
 // Claude に返させる JSON の形
 const OUTPUT_SCHEMA = {
@@ -33,7 +40,7 @@ const OUTPUT_SCHEMA = {
       type: "array",
       items: {
         type: "object",
-        required: ["id", "ingredients", "mainIngredients"],
+        required: ["id", "ingredients", "mainIngredients", "cuisine"],
         properties: {
           id: { type: "string" },
           ingredients: {
@@ -52,6 +59,7 @@ const OUTPUT_SCHEMA = {
             maxItems: MAX_MAIN_INGREDIENTS,
             items: { type: "string" },
           },
+          cuisine: { type: "string", enum: CUISINES },
         },
       },
     },
@@ -87,7 +95,9 @@ const isFilledIngredients = (value: unknown): value is FilledIngredients => {
     ) &&
     Array.isArray(item.mainIngredients) &&
     item.mainIngredients.length <= MAX_MAIN_INGREDIENTS &&
-    item.mainIngredients.every(isString)
+    item.mainIngredients.every(isString) &&
+    isString(item.cuisine) &&
+    CUISINES.includes(item.cuisine)
   );
 };
 
@@ -138,7 +148,7 @@ const buildPrompt = async (videos: VideoWithDescription[]): Promise<string> => {
   );
 
   return [
-    "次の決まりに従って、それぞれの動画の説明文から ingredients と mainIngredients を書き出し、動画の id ごとに返してください。",
+    "次の決まりに従って、それぞれの動画の説明文から ingredients・mainIngredients・cuisine を書き出し、動画の id ごとに返してください。",
     rules,
     "## 常備している食材",
     JSON.stringify(preferences.pantryIngredients ?? []),
@@ -192,7 +202,7 @@ const fillOnce = async (target: FillTarget): Promise<number> => {
   return filled.length;
 };
 
-/** 指定したファイルで、材料とメイン食材がまだないレシピを埋める。実行中なら、その結果を待つ */
+/** 指定したファイルで、材料・メイン食材・料理の系統がまだないレシピを埋める。実行中なら、その結果を待つ */
 export const fillMissingIngredients = (target: FillTarget): Promise<number> => {
   const current = running.get(target);
   if (current !== undefined) return current;
