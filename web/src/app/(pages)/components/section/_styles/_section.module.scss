@@ -1,0 +1,22 @@
+@use "responsive";
+@use "variables";
+
+.top {
+  @include responsive.mq-max(md) {
+    padding-top: variables.space(48);
+  }
+
+  @include responsive.mq-min(md) {
+    padding-top: variables.space(60);
+  }
+}
+
+.bottom {
+  @include responsive.mq-max(md) {
+    padding-bottom: variables.space(48);
+  }
+
+  @include responsive.mq-min(md) {
+    padding-bottom: variables.space(60);
+  }
+}
