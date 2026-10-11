@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { ReactNode } from "react";
 import type { RecipeCardLayout } from "@/app/(pages)/components/recipeCard/recipeCard";
 import { truncate } from "@/utils/truncate";
@@ -13,15 +14,6 @@ interface ManageItemProps {
   // サーバーで作ったレシピカード
   children: ReactNode;
 }
-
-/** 「削除」ボタンのごみ箱のアイコン */
-const DeleteIcon = () => {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" />
-    </svg>
-  );
-};
 
 /**
  * 一覧の1件。整理中は、カードの下（リストでは行の右）に「削除」か「取り消す」を出す
@@ -56,7 +48,12 @@ const ManageItem = ({ recipeId, title, layout, children }: ManageItemProps) => {
               "取り消す"
             ) : (
               <>
-                <DeleteIcon />
+                <Image
+                  src="/images/icon/icon-delete.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                />
                 削除
               </>
             )}

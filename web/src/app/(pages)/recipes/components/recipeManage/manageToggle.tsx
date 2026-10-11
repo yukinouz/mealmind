@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import styles from "./_styles/_recipeManage.module.scss";
 import { useRecipeManage } from "./recipeManage";
 
@@ -14,9 +15,17 @@ const ManageToggle = () => {
       disabled={isSaving}
       onClick={toggleManage}
     >
-      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 6h16M4 12h11M4 18h6" />
-      </svg>
+      {/* 整理中は地がメインカラーになるので、白いアイコンに替える */}
+      <Image
+        src={
+          isManaging
+            ? "/images/icon/icon-manage-white.svg"
+            : "/images/icon/icon-manage.svg"
+        }
+        alt=""
+        width={18}
+        height={18}
+      />
       レシピを整理する
     </button>
   );
