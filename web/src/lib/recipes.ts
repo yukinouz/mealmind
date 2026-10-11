@@ -1,8 +1,11 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { toLocalDate, toLocalDateTime } from "@/utils/localDate";
 
 // npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
-const RECIPES_PATH = path.resolve(process.cwd(), "..", "data", "recipes.json");
+const DATA_DIR = path.resolve(process.cwd(), "..", "data");
+const RECIPES_PATH = path.join(DATA_DIR, "recipes.json");
+const EXCLUDED_PATH = path.join(DATA_DIR, "excluded.json");
 
 export type Meal = "lunch" | "dinner";
 
@@ -19,43 +22,181 @@ export type Recipe = {
   registeredAt: string;
 };
 
-// 「作る」と決めたレシピをすべて読む。ファイルがまだないときは空の一覧を返す
+/** 画面から記録するレシピ。材料とメイン食材は、あとでレシピ一覧を開いたときに埋める（ADR-0010） */
+export interface NewRecipe {
+  id: string;
+  title: string;
+  url: string;
+  sourceId: string;
+  channel: string;
+  meal: Meal;
+}
+
+// 一覧で使わない項目（材料など）も消さないよう、型で絞らずにそのまま読み書きする
+type JsonRecord = Record<string, unknown>;
+
+interface RecipesFile {
+  schemaVersion: number;
+  recipes: JsonRecord[];
+}
+
+interface ExcludedFile {
+  schemaVersion: number;
+  excluded: JsonRecord[];
+}
+
+/** 「作る」と決めたレシピをすべて読む。ファイルがまだないときは空の一覧を返す */
 export const readRecipes = async (): Promise<Recipe[]> => {
-  const json = await readFile(RECIPES_PATH, "utf8").catch((error) => {
-    if (error.code === "ENOENT") return null;
-    throw error;
+  const data = await readRecipesFile();
+  return data.recipes as Recipe[];
+};
+
+/** 指定したレシピの isFavorite を書き換える。見つからないときは何もしない */
+export const updateFavorite = (id: string, isFavorite: boolean) =>
+  inOrder(async () => {
+    const data = await readRecipesFile();
+    const hasRecipe = data.recipes.some((recipe) => recipe.id === id);
+    if (!hasRecipe) return;
+
+    const recipes = data.recipes.map((recipe) =>
+      recipe.id === id ? { ...recipe, isFavorite } : recipe,
+    );
+    await writeJsonSafely(RECIPES_PATH, { ...data, recipes });
   });
-  if (json === null) return [];
 
-  return (JSON.parse(json) as { recipes: Recipe[] }).recipes;
-};
+/**
+ * 「作る」を記録する。同じ URL があれば、今日の日付と今回の食事を足す
+ * なければ、材料とメイン食材の項目を持たずに追加する
+ */
+export const recordMake = (recipe: NewRecipe) =>
+  inOrder(async () => {
+    const now = new Date();
+    const today = toLocalDate(now);
+    const data = await readRecipesFile();
+    const existing = data.recipes.find((item) => item.url === recipe.url);
 
-// 指定したレシピの isFavorite を書き換える。見つからないときは何もしない
-export const updateFavorite = async (
-  id: string,
-  isFavorite: boolean,
-): Promise<void> => {
-  // 一覧で使わない項目（材料など）も消さないよう、型で絞らずにそのまま読み書きする
-  const json = await readFile(RECIPES_PATH, "utf8");
-  const data = JSON.parse(json) as { recipes: Record<string, unknown>[] };
-  const hasRecipe = data.recipes.some((recipe) => recipe.id === id);
-  if (!hasRecipe) return;
+    if (existing === undefined) {
+      const { meal, ...rest } = recipe;
+      const added = {
+        ...rest,
+        meals: [meal],
+        registeredAt: toLocalDateTime(now),
+        chosenDates: [today],
+        isFavorite: false,
+      };
+      await writeJsonSafely(RECIPES_PATH, {
+        ...data,
+        recipes: [...data.recipes, added],
+      });
+      return;
+    }
 
-  const recipes = data.recipes.map((recipe) =>
-    recipe.id === id ? { ...recipe, isFavorite } : recipe,
-  );
-  await writeJsonSafely(RECIPES_PATH, { ...data, recipes });
-};
+    const updated = {
+      ...existing,
+      chosenDates: addOnce(existing.chosenDates as string[], today),
+      meals: addOnce(existing.meals as Meal[], recipe.meal),
+    };
+    const recipes = data.recipes.map((item) =>
+      item === existing ? updated : item,
+    );
+    await writeJsonSafely(RECIPES_PATH, { ...data, recipes });
+  });
 
-// 追加した日時（registeredAt）が新しい順に並べた、新しい配列を返す
+/**
+ * 「作る」の取り消し。今日の日付を消し、日付が残らなければその1件を消す
+ * 足した食事は戻さない（もともと持っていたかを覚えていないため）
+ */
+export const undoMake = (url: string) =>
+  inOrder(async () => {
+    const today = toLocalDate(new Date());
+    const data = await readRecipesFile();
+    const recipes = data.recipes.flatMap((item) => {
+      if (item.url !== url) return [item];
+
+      const chosenDates = (item.chosenDates as string[]).filter(
+        (date) => date !== today,
+      );
+      return chosenDates.length === 0 ? [] : [{ ...item, chosenDates }];
+    });
+    await writeJsonSafely(RECIPES_PATH, { ...data, recipes });
+  });
+
+/** 「作らない」を記録する。同じ URL がすでにあれば何もしない */
+export const recordReject = (recipe: NewRecipe) =>
+  inOrder(async () => {
+    const data = await readExcludedFile();
+    const hasRecipe = data.excluded.some((item) => item.url === recipe.url);
+    if (hasRecipe) return;
+
+    const { meal, ...rest } = recipe;
+    const added = {
+      ...rest,
+      meals: [meal],
+      chosenDates: [],
+      isFavorite: false,
+      excludedAt: toLocalDateTime(new Date()),
+      reason: "rejected",
+    };
+    await writeJsonSafely(EXCLUDED_PATH, {
+      ...data,
+      excluded: [...data.excluded, added],
+    });
+  });
+
+/** 「作らない」の取り消し。提案で外したもの（rejected）だけを消す */
+export const undoReject = (url: string) =>
+  inOrder(async () => {
+    const data = await readExcludedFile();
+    const excluded = data.excluded.filter(
+      (item) => !(item.url === url && item.reason === "rejected"),
+    );
+    await writeJsonSafely(EXCLUDED_PATH, { ...data, excluded });
+  });
+
+/** 追加した日時（registeredAt）が新しい順に並べた、新しい配列を返す */
 // 時差の表記が違っても正しく比べられるよう、日時に変換してから比べる
 export const sortByNewest = (recipes: Recipe[]): Recipe[] =>
   recipes.toSorted(
     (a, b) => Date.parse(b.registeredAt) - Date.parse(a.registeredAt),
   );
 
-// 書き込みの途中で壊れないよう、一時ファイルに書いてから置き換える（suggest スキルと同じ方法）
-// 整形は jq の出力（2スペース・末尾に改行）に合わせる
+/** 一覧になければ足した、新しい配列を返す */
+const addOnce = <T>(list: T[], value: T): T[] =>
+  list.includes(value) ? list : [...list, value];
+
+/** JSON ファイルを読む。ファイルがまだないときは empty を返す */
+const readJson = async <T>(filePath: string, empty: T): Promise<T> => {
+  const json = await readFile(filePath, "utf8").catch((error) => {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  });
+  if (json === null) return empty;
+
+  return JSON.parse(json) as T;
+};
+
+/** recipes.json を読む */
+const readRecipesFile = () =>
+  readJson<RecipesFile>(RECIPES_PATH, { schemaVersion: 1, recipes: [] });
+
+/** excluded.json を読む */
+const readExcludedFile = () =>
+  readJson<ExcludedFile>(EXCLUDED_PATH, { schemaVersion: 1, excluded: [] });
+
+// 書き込みの順番待ち。読んでから書くまでの間に別の書き込みが割り込むと、片方の変更が消えるため
+let queue: Promise<unknown> = Promise.resolve();
+
+/** 書き込みを1つずつ順番に実行する。前の書き込みが失敗しても、次は実行する */
+const inOrder = <T>(task: () => Promise<T>): Promise<T> => {
+  const result = queue.then(task);
+  queue = result.catch(() => undefined);
+  return result;
+};
+
+/**
+ * 書き込みの途中で壊れないよう、一時ファイルに書いてから置き換える（suggest スキルと同じ方法）
+ * 整形は jq の出力（2スペース・末尾に改行）に合わせる
+ */
 const writeJsonSafely = async (filePath: string, data: unknown) => {
   const tmpPath = `${filePath}.tmp`;
   await writeFile(tmpPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
