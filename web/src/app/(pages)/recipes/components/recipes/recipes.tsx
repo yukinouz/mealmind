@@ -1,5 +1,4 @@
 import { connection } from "next/server";
-import { LinkButton } from "@/app/(pages)/components/linkButton/linkButton";
 import { RecipeCard } from "@/app/(pages)/components/recipeCard/recipeCard";
 import { findUnfilled, readRecipes, sortByNewest } from "@/lib/recipes";
 import { IngredientsFiller } from "../ingredientsFiller/ingredientsFiller";
@@ -26,9 +25,6 @@ const Recipes = async () => {
           ))}
         </ul>
       )}
-      <div className={styles.buttonWrapper}>
-        <LinkButton href="/" text="トップへ戻る" />
-      </div>
     </>
   );
 };

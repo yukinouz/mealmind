@@ -38,7 +38,6 @@ npm run dev     # 開発用サーバーを起動する
 | トップ                   | `src/app/(pages)/page.tsx`・`components/recipePicker/` |
 | レシピ一覧               | `src/app/(pages)/recipes/page.tsx`                     |
 | 部品：レシピカード       | `src/app/(pages)/components/recipeCard/`               |
-| ボタンの色候補           | `src/app/(pages)/components/linkButton/`               |
 | デザインルール（色など） | `src/_styles/_variables.scss`                          |
 | ヘッダー                 | `src/app/(pages)/components/header/`・`gnav/`          |
 | フッター                 | `src/app/(pages)/components/footer/`                   |
