@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { type PickState, pickRecipeAction } from "./actions";
+import { type PickState, pickRecipeAction } from "@/actions/pick-recipe";
 
 const INITIAL_STATE: PickState = { type: "idle" };
 

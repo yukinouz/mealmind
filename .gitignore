@@ -15,3 +15,4 @@ data/preferences.json
 data/preferences.md
 data/recipes.json
 data/excluded.json
+data/*.tmp
