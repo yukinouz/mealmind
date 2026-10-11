@@ -264,6 +264,18 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
     });
   };
 
+  /** 絞り込み・♡のみ・並び順・検索を変える。出るレシピが変わるので1ページ目に戻す */
+  const changeCondition = (next: Filter) => {
+    // 条件が変わらなければ、ページもそのままにする
+    if (
+      toRecipeQuery({ ...next, page: shownFilter.page }) ===
+      toRecipeQuery(shownFilter)
+    )
+      return;
+
+    changeFilter({ ...next, page: 1 });
+  };
+
   const channelOptions = channels.map((channel) => ({
     value: channel.id,
     label: channel.label,
@@ -280,7 +292,7 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
             <button
               className={styles.clear}
               type="button"
-              onClick={() => changeFilter(clearGroups(shownFilter))}
+              onClick={() => changeCondition(clearGroups(shownFilter))}
             >
               条件をクリア
             </button>
@@ -290,19 +302,19 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
           label="食事"
           options={MEAL_OPTIONS}
           selected={shownFilter.meals}
-          onChange={(meals) => changeFilter({ ...shownFilter, meals })}
+          onChange={(meals) => changeCondition({ ...shownFilter, meals })}
         />
         <FilterGroup
           label="ジャンル"
           options={CUISINE_OPTIONS}
           selected={shownFilter.cuisines}
-          onChange={(cuisines) => changeFilter({ ...shownFilter, cuisines })}
+          onChange={(cuisines) => changeCondition({ ...shownFilter, cuisines })}
         />
         <FilterGroup
           label="チャンネル"
           options={channelOptions}
           selected={shownFilter.channels}
-          onChange={(channels) => changeFilter({ ...shownFilter, channels })}
+          onChange={(channels) => changeCondition({ ...shownFilter, channels })}
         />
       </section>
       <div className={styles.controls}>
@@ -310,12 +322,12 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
           <FavoriteToggle
             isFavoriteOnly={shownFilter.isFavoriteOnly}
             onChange={(isFavoriteOnly) =>
-              changeFilter({ ...shownFilter, isFavoriteOnly })
+              changeCondition({ ...shownFilter, isFavoriteOnly })
             }
           />
           <OrderToggle
             order={shownFilter.order}
-            onChange={(order) => changeFilter({ ...shownFilter, order })}
+            onChange={(order) => changeCondition({ ...shownFilter, order })}
           />
           <ViewToggle
             view={shownFilter.view}
@@ -324,7 +336,7 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
         </div>
         <SearchBox
           query={shownFilter.query}
-          onSearch={(query) => changeFilter({ ...shownFilter, query })}
+          onSearch={(query) => changeCondition({ ...shownFilter, query })}
         />
       </div>
     </>

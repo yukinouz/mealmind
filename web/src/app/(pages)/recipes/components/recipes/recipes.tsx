@@ -2,6 +2,7 @@ import Link from "next/link";
 import { RecipeCard } from "@/app/(pages)/components/recipeCard/recipeCard";
 import { findUnfilled, readRecipes } from "@/lib/recipes";
 import { readChannels } from "@/lib/sources";
+import { countPages, slicePage } from "@/utils/pagination";
 import {
   DEFAULT_FILTER,
   type RecipeFilter as Filter,
@@ -12,6 +13,7 @@ import {
   toRecipeQuery,
 } from "@/utils/recipeFilter";
 import { IngredientsFiller } from "../ingredientsFiller/ingredientsFiller";
+import { Pagination } from "../pagination/pagination";
 import { RecipeFilter } from "../recipeFilter/recipeFilter";
 import styles from "./_styles/_recipes.module.scss";
 
@@ -41,7 +43,7 @@ const NoMatch = ({ order, view }: NoMatchProps) => {
   );
 };
 
-/** レシピ一覧の中身。絞り込み欄と、条件に合うレシピのカード */
+/** レシピ一覧の中身。絞り込み欄と、条件に合うレシピのカード（1ページ9件）とページ送り */
 const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
   const [allRecipes, channels, unfilled] = await Promise.all([
     readRecipes(),
@@ -60,24 +62,29 @@ const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
 
   // 並び順の既定は、追加が新しい順
   const recipes = sortRecipes(filterRecipes(allRecipes, filter), filter.order);
+  // 範囲外のページ（?page=99 など）も、0件と同じお知らせにする
+  const pageRecipes = slicePage(recipes, filter.page);
   return (
     <>
       {unfilled.length > 0 && <IngredientsFiller target="recipes" />}
       <RecipeFilter filter={filter} channels={channels} />
-      {recipes.length === 0 ? (
+      {pageRecipes.length === 0 ? (
         <NoMatch order={filter.order} view={filter.view} />
       ) : (
-        <ul className={filter.view === "list" ? styles.rows : styles.list}>
-          {recipes.map((recipe) => (
-            <li key={recipe.id}>
-              <RecipeCard
-                recipe={recipe}
-                isFavorite={recipe.isFavorite}
-                layout={filter.view}
-              />
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className={filter.view === "list" ? styles.rows : styles.list}>
+            {pageRecipes.map((recipe) => (
+              <li key={recipe.id}>
+                <RecipeCard
+                  recipe={recipe}
+                  isFavorite={recipe.isFavorite}
+                  layout={filter.view}
+                />
+              </li>
+            ))}
+          </ul>
+          <Pagination filter={filter} totalPages={countPages(recipes.length)} />
+        </>
       )}
     </>
   );

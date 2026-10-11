@@ -1,0 +1,89 @@
+@use "responsive";
+@use "variables";
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @include responsive.mq-max(md) {
+    gap: variables.space(4);
+    margin-top: variables.space(32);
+  }
+
+  @include responsive.mq-min(md) {
+    gap: variables.space(8);
+    margin-top: variables.space(48);
+  }
+}
+
+// 番号と矢印。高さは 40px
+.page,
+.arrow {
+  display: grid;
+  place-items: center;
+  border: 1px solid variables.$color-border;
+  background-color: variables.$color-white;
+
+  @include responsive.mq-max(md) {
+    height: 32px;
+    width: 32px;
+    border-radius: variables.$radius-pill;
+  }
+
+  @include responsive.mq-min(md) {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      opacity: variables.$hover-opacity;
+    }
+  }
+}
+
+.page {
+  color: variables.$color-text-sub;
+  font-weight: 700;
+
+  @include responsive.mq-max(md) {
+    font-size: 12px;
+  }
+
+  @include responsive.mq-min(md) {
+    font-size: 14px;
+  }
+
+  &[aria-current="page"] {
+    border-color: variables.$color-orange500;
+    background-color: variables.$color-orange500;
+    color: variables.$color-white;
+  }
+}
+
+// 共通のスタイルで画像の幅が 100% になるので、矢印の大きさを決める
+.arrow > img {
+  @include responsive.mq-max(md) {
+    width: 18px;
+  }
+
+  @include responsive.mq-min(md) {
+    width: 20px;
+  }
+}
+
+.gap {
+  color: variables.$color-text-sub;
+  font-weight: 700;
+  text-align: center;
+
+  @include responsive.mq-max(md) {
+    width: 20px;
+  }
+
+  @include responsive.mq-min(md) {
+    width: 24px;
+  }
+}
