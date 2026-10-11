@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { RecipeCard } from "@/app/(pages)/components/recipeCard/recipeCard";
-import { findUnfilled, readRecipes, sortByNewest } from "@/lib/recipes";
+import { findUnfilled, readRecipes } from "@/lib/recipes";
 import { readChannels } from "@/lib/sources";
 import {
   type RecipeFilter as Filter,
   filterRecipes,
+  sortRecipes,
 } from "@/utils/recipeFilter";
 import { IngredientsFiller } from "../ingredientsFiller/ingredientsFiller";
 import { RecipeFilter } from "../recipeFilter/recipeFilter";
@@ -43,8 +44,8 @@ const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
     channels: requestedFilter.channels.filter((id) => channelIds.has(id)),
   };
 
-  // デフォルトは追加が新しい順
-  const recipes = sortByNewest(filterRecipes(allRecipes, filter));
+  // 並び順の既定は、追加が新しい順
+  const recipes = sortRecipes(filterRecipes(allRecipes, filter), filter.order);
   return (
     <>
       {unfilled.length > 0 && <IngredientsFiller target="recipes" />}
