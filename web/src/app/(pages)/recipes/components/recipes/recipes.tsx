@@ -57,21 +57,14 @@ const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
 
   // URL にある sources.json にないチャンネルは捨てる。残すと、どのボタンも選ばれていない見た目になる
   const channelIds = new Set(channels.map((channel) => channel.id));
-  const channelFilter = {
+  const filter = {
     ...requestedFilter,
     channels: requestedFilter.channels.filter((id) => channelIds.has(id)),
   };
 
   // 並び順の既定は、追加が新しい順
-  const recipes = sortRecipes(
-    filterRecipes(allRecipes, channelFilter),
-    channelFilter.order,
-  );
-  // 範囲外のページ（?page=99 や、最後のページを全部削除したあと）は、最後のページを出す
-  const filter = {
-    ...channelFilter,
-    page: Math.min(channelFilter.page, countPages(recipes.length)),
-  };
+  const recipes = sortRecipes(filterRecipes(allRecipes, filter), filter.order);
+  // 範囲外のページ（?page=99 など）も、0件と同じお知らせにする
   const pageRecipes = slicePage(recipes, filter.page);
   return (
     <>

@@ -81,6 +81,7 @@
   color: variables.$color-orange800;
   font-size: 14px;
   font-weight: 700;
+  width: auto;
 
   &:disabled {
     opacity: 0.6;
@@ -150,6 +151,8 @@
 
 .delete,
 .cancel {
+  width: auto;
+
   &:disabled {
     opacity: 0.6;
   }

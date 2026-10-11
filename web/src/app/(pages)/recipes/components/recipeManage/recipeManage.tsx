@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   createContext,
   type ReactNode,
@@ -144,6 +145,14 @@ const useLeaveGuard = (hasPending: boolean) => {
   }, [hasPending]);
 };
 
+/** いまの URL から、ページの指定だけを外した URL。絞り込みなどの条件は残す */
+const toFirstPageUrl = (): string => {
+  const params = new URLSearchParams(location.search);
+  params.delete("page");
+  const query = params.toString();
+  return query === "" ? location.pathname : `${location.pathname}?${query}`;
+};
+
 /** 「レシピを整理する」の状態を使う。RecipeManageProvider の中でだけ使える */
 const useRecipeManage = (): RecipeManage => {
   const manage = use(RecipeManageContext);
@@ -163,6 +172,7 @@ const RecipeManageProvider = ({ children }: RecipeManageProviderProps) => {
   const [isConfirming, setIsConfirming] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isSaving, startSaving] = useTransition();
+  const router = useRouter();
 
   useLeaveGuard(pendingIds.length > 0);
 
@@ -181,7 +191,10 @@ const RecipeManageProvider = ({ children }: RecipeManageProviderProps) => {
     reset();
   };
 
-  /** 削除予定を確定する。保存中はボタンを押せなくする。失敗したときは削除予定を残し、もう一度押せるようにする */
+  /**
+   * 削除予定を確定する。保存中はボタンを押せなくする。失敗したときは削除予定を残し、もう一度押せるようにする
+   * 確定したら1ページ目へ移る。レシピが減って、いまのページがなくなることがあるため
+   */
   const finish = () => {
     if (pendingIds.length === 0) return reset();
 
@@ -190,6 +203,9 @@ const RecipeManageProvider = ({ children }: RecipeManageProviderProps) => {
       const result = await hideRecipesAction(pendingIds);
       if (result.type === "error") return setHasError(true);
       reset();
+      // 削除のあとに「戻る」で消えたページへ戻らないよう、履歴は増やさない
+      router.replace(toFirstPageUrl(), { scroll: false });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   };
 
