@@ -4,6 +4,9 @@ import { type Cuisine, isCuisine } from "@/utils/cuisine";
 /** 並び順。追加日が新しい順か古い順 */
 export type RecipeOrder = "newest" | "oldest";
 
+/** 一覧の表示形式。カードを並べるか、1行ずつのリストにするか */
+export type RecipeView = "card" | "list";
+
 /** レシピ一覧の絞り込みの条件。meals・cuisines・channels は、空なら「すべて」 */
 export interface RecipeFilter {
   meals: Meal[];
@@ -11,6 +14,7 @@ export interface RecipeFilter {
   channels: string[];
   isFavoriteOnly: boolean;
   order: RecipeOrder;
+  view: RecipeView;
   // 検索の言葉。空白で区切った言葉をすべて含むレシピだけを出す
   query: string;
 }
@@ -18,13 +22,14 @@ export interface RecipeFilter {
 /** ページが受け取る URL の検索パラメータ */
 export type SearchParams = Record<string, string | string[] | undefined>;
 
-/** 条件がないとき。すべてのレシピを、追加日が新しい順に出す */
+/** 条件がないとき。すべてのレシピを、追加日が新しい順にカードで出す */
 export const DEFAULT_FILTER: RecipeFilter = {
   meals: [],
   cuisines: [],
   channels: [],
   isFavoriteOnly: false,
   order: "newest",
+  view: "card",
   query: "",
 };
 
@@ -57,6 +62,7 @@ export const parseRecipeFilter = (params: SearchParams): RecipeFilter => ({
   channels: unique(splitValues(params.channel).filter(isChannelId)),
   isFavoriteOnly: params.fav === "1",
   order: params.order === "oldest" ? "oldest" : "newest",
+  view: params.view === "list" ? "list" : "card",
   query: ([params.q ?? ""].flat()[0] ?? "").trim().slice(0, MAX_QUERY_LENGTH),
 });
 
@@ -68,6 +74,7 @@ export const toRecipeQuery = (filter: RecipeFilter): string =>
     ["channel", filter.channels.join(",")],
     ["fav", filter.isFavoriteOnly ? "1" : ""],
     ["order", filter.order === "oldest" ? "oldest" : ""],
+    ["view", filter.view === "list" ? "list" : ""],
     // 検索の言葉だけは自由な文字なので、URL で使える形に変える
     ["q", encodeURIComponent(filter.query.trim())],
   ]
@@ -76,7 +83,7 @@ export const toRecipeQuery = (filter: RecipeFilter): string =>
     .map(([key, value]) => `${key}=${value}`)
     .join("&");
 
-/** 絞り込み欄（食事・ジャンル・チャンネル）の条件を外した、新しい条件を返す。♡のみと並び順は残す */
+/** 絞り込み欄（食事・ジャンル・チャンネル）の条件を外した、新しい条件を返す。♡のみ・並び順・表示形式は残す */
 export const clearGroups = (filter: RecipeFilter): RecipeFilter => ({
   ...filter,
   meals: [],

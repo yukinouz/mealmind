@@ -3,12 +3,16 @@ import type { Meal, Recipe } from "@/lib/recipes";
 import { thumbnailUrlOf } from "@/utils/thumbnailUrl";
 import { truncate } from "@/utils/truncate";
 import { RecipeThumbnail } from "../recipeThumbnail/recipeThumbnail";
-import styles from "./_styles/_recipeCard.module.scss";
+import cardStyles from "./_styles/_recipeCard.module.scss";
+import listStyles from "./_styles/_recipeCardList.module.scss";
 
 const MEAL_LABELS: Record<Meal, string> = {
   lunch: "昼食",
   dinner: "夕食",
 };
+
+/** 見た目の種類。card はカード、list は一覧の1行 */
+export type RecipeCardLayout = "card" | "list";
 
 interface RecipeCardProps {
   recipe: Pick<
@@ -17,12 +21,23 @@ interface RecipeCardProps {
   >;
   // 渡さないときはハートを出さない（まだ記録していない、提案したレシピなど）
   isFavorite?: boolean;
+  // 渡さないときはカード
+  layout?: RecipeCardLayout;
 }
 
 interface FavoriteButtonProps {
   recipeId: string;
   isFavorite: boolean;
+  styles: CardStyles;
 }
+
+// カードとリストで、同じ名前の class を持つ CSS を差し替えて使う
+type CardStyles = typeof cardStyles;
+
+const STYLES: Record<RecipeCardLayout, CardStyles> = {
+  card: cardStyles,
+  list: listStyles,
+};
 
 const FavoriteIcon = () => {
   return (
@@ -33,7 +48,11 @@ const FavoriteIcon = () => {
 };
 
 // お気に入りを切り替えるハートのボタン。押すと今と逆の状態をサーバーに送る
-const FavoriteButton = ({ recipeId, isFavorite }: FavoriteButtonProps) => {
+const FavoriteButton = ({
+  recipeId,
+  isFavorite,
+  styles,
+}: FavoriteButtonProps) => {
   return (
     <form action={setFavoriteAction.bind(null, recipeId, !isFavorite)}>
       <button
@@ -48,9 +67,17 @@ const FavoriteButton = ({ recipeId, isFavorite }: FavoriteButtonProps) => {
   );
 };
 
-/** レシピ1件分のカード。ハートでお気に入りを切り替えられる（メイン食材は表示だけ） */
-const RecipeCard = ({ recipe, isFavorite }: RecipeCardProps) => {
+/**
+ * レシピ1件分のカード。ハートでお気に入りを切り替えられる（メイン食材は表示だけ）
+ * layout が list のときは、同じ中身を一覧の1行の見た目で出す
+ */
+const RecipeCard = ({
+  recipe,
+  isFavorite,
+  layout = "card",
+}: RecipeCardProps) => {
   const mainIngredients = recipe.mainIngredients ?? [];
+  const styles = STYLES[layout];
 
   return (
     <article className={styles.card}>
@@ -60,7 +87,11 @@ const RecipeCard = ({ recipe, isFavorite }: RecipeCardProps) => {
           <RecipeThumbnail src={thumbnailUrlOf(recipe)} />
         </div>
         {isFavorite !== undefined && (
-          <FavoriteButton recipeId={recipe.id} isFavorite={isFavorite} />
+          <FavoriteButton
+            recipeId={recipe.id}
+            isFavorite={isFavorite}
+            styles={styles}
+          />
         )}
       </div>
       <div className={styles.item}>

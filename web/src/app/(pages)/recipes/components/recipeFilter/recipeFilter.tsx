@@ -18,6 +18,7 @@ import {
   hasAnyFilter,
   MAX_QUERY_LENGTH,
   type RecipeOrder,
+  type RecipeView,
   toggleValue,
   toRecipeQuery,
 } from "@/utils/recipeFilter";
@@ -58,6 +59,11 @@ interface FavoriteToggleProps {
 interface OrderToggleProps {
   order: RecipeOrder;
   onChange: (order: RecipeOrder) => void;
+}
+
+interface ViewToggleProps {
+  view: RecipeView;
+  onChange: (view: RecipeView) => void;
 }
 
 interface SearchBoxProps {
@@ -146,6 +152,34 @@ const OrderToggle = ({ order, onChange }: OrderToggleProps) => {
   );
 };
 
+/** カード表示・リスト表示の切り替え。いまと逆の表示形式のアイコンを出す */
+const ViewToggle = ({ view, onChange }: ViewToggleProps) => {
+  const isList = view === "list";
+  const label = isList ? "カード表示に切り替える" : "リスト表示に切り替える";
+  return (
+    <button
+      className={styles.view}
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={() => onChange(isList ? "card" : "list")}
+    >
+      {isList ? (
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
+          <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
+          <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+          <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" />
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
+        </svg>
+      )}
+    </button>
+  );
+};
+
 /**
  * 料理名・食材・チャンネル名の検索欄。打った言葉は少し待ってから onSearch で渡す
  * URL の言葉がほかの操作（条件をすべて解除など）で変わったときは、欄の中身もそれに合わせる
@@ -208,7 +242,7 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
 };
 
 /**
- * レシピ一覧の絞り込み欄と、その下の ♡のみ・並び順・検索の行。条件は URL に持たせ、一覧の絞り込みと並べ替えはサーバーで行う
+ * レシピ一覧の絞り込み欄と、その下の ♡のみ・並び順・表示形式・検索の行。条件は URL に持たせ、一覧の絞り込みと並べ替えはサーバーで行う
  * 押したらすぐ選択の見た目を変え、URL の書き換えはその後に行う
  */
 export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
@@ -282,6 +316,10 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
           <OrderToggle
             order={shownFilter.order}
             onChange={(order) => changeFilter({ ...shownFilter, order })}
+          />
+          <ViewToggle
+            view={shownFilter.view}
+            onChange={(view) => changeFilter({ ...shownFilter, view })}
           />
         </div>
         <SearchBox

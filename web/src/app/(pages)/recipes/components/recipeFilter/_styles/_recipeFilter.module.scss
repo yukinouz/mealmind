@@ -106,7 +106,7 @@
   }
 }
 
-// ♡のみ・並び順と検索の行。絞り込み欄と同じ役割の中なので、間は 12px
+// ♡のみ・並び順・表示形式と検索の行。絞り込み欄と同じ役割の中なので、間は 12px
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -179,7 +179,8 @@
   }
 }
 
-.order {
+.order,
+.view {
   display: grid;
   place-items: center;
   border: 1px solid variables.$color-border;
@@ -208,6 +209,10 @@
       cursor: pointer;
     }
   }
+}
+
+.view > svg {
+  stroke: variables.$color-black;
 }
 
 // いまの向きの矢印を濃く、もう片方を薄く出す
