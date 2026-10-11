@@ -166,12 +166,12 @@
 }
 
 // いまの向きの矢印を濃く、もう片方を薄く出す
-.up,
-.down {
+.arrowUp,
+.arrowDown {
   stroke: variables.$color-brown400;
 }
 
-.order[data-order="newest"] .down,
-.order[data-order="oldest"] .up {
+.order[data-order="newest"] .arrowDown,
+.order[data-order="oldest"] .arrowUp {
   stroke: variables.$color-black;
 }

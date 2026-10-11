@@ -123,8 +123,8 @@ const OrderToggle = ({ order, onChange }: OrderToggleProps) => {
       onClick={() => onChange(order === "newest" ? "oldest" : "newest")}
     >
       <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-        <path className={styles.up} d="M8 19V5M4 9l4-4 4 4" />
-        <path className={styles.down} d="M16 5v14M12 15l4 4 4-4" />
+        <path className={styles.arrowUp} d="M8 19V5M4 9l4-4 4 4" />
+        <path className={styles.arrowDown} d="M16 5v14M12 15l4 4 4-4" />
       </svg>
     </button>
   );
