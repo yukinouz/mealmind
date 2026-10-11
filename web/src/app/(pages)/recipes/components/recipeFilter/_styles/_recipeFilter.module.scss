@@ -273,33 +273,4 @@
   &:focus {
     outline: none;
   }
-
-  // ブラウザが出す「×」は使わず、デザインの「×」を出す
-  &::-webkit-search-cancel-button {
-    appearance: none;
-  }
-}
-
-.searchClear {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: variables.$color-divider;
-  color: variables.$color-text-sub;
-
-  > svg {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    stroke-linecap: round;
-  }
-
-  @media (hover: hover) {
-    &:hover {
-      cursor: pointer;
-    }
-  }
 }
