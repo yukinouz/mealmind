@@ -1,0 +1,97 @@
+@use "responsive";
+@use "variables";
+
+// PC とスマホで番号の数が違うので、片方だけ出す
+.pc,
+.sp {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pc {
+  gap: variables.space(8);
+  margin-top: variables.space(48);
+
+  @include responsive.mq-max(md) {
+    display: none;
+  }
+}
+
+.sp {
+  gap: variables.space(4);
+  margin-top: variables.space(40);
+
+  @include responsive.mq-min(md) {
+    display: none;
+  }
+}
+
+// 番号と矢印。高さは 40px。スマホは横幅に収まるよう細くする
+.page,
+.arrow {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  border: 1px solid variables.$color-border;
+  background-color: variables.$color-white;
+
+  .pc & {
+    width: 40px;
+    border-radius: 50%;
+  }
+
+  .sp & {
+    width: 32px;
+    border-radius: variables.$radius-pill;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      opacity: variables.$hover-opacity;
+    }
+  }
+}
+
+.page {
+  color: variables.$color-text-sub;
+  font-size: 14px;
+  font-weight: 700;
+
+  &[aria-current="page"] {
+    border-color: variables.$color-orange500;
+    background-color: variables.$color-orange500;
+    color: variables.$color-white;
+  }
+}
+
+.arrow {
+  color: variables.$color-black;
+
+  > svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .sp & > svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.gap {
+  color: variables.$color-text-sub;
+  font-weight: 700;
+  text-align: center;
+
+  .pc & {
+    width: 24px;
+  }
+
+  .sp & {
+    width: 20px;
+  }
+}

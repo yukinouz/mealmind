@@ -17,6 +17,8 @@ export interface RecipeFilter {
   view: RecipeView;
   // 検索の言葉。空白で区切った言葉をすべて含むレシピだけを出す
   query: string;
+  // 何ページ目か。1から数える
+  page: number;
 }
 
 /** ページが受け取る URL の検索パラメータ */
@@ -31,6 +33,7 @@ export const DEFAULT_FILTER: RecipeFilter = {
   order: "newest",
   view: "card",
   query: "",
+  page: 1,
 };
 
 const MEALS: readonly string[] = ["lunch", "dinner"] satisfies Meal[];
@@ -55,6 +58,12 @@ const splitValues = (value: string | string[] | undefined): string[] =>
     .flatMap((part) => part.split(","))
     .filter((part) => part !== "");
 
+/** ページ番号を読む。1以上の整数でなければ1ページ目にする */
+const parsePage = (value: string | string[] | undefined): number => {
+  const page = Number([value ?? ""].flat()[0]);
+  return Number.isInteger(page) && page >= 1 ? page : 1;
+};
+
 /** URL の検索パラメータから条件を読む。知らない値は捨てる */
 export const parseRecipeFilter = (params: SearchParams): RecipeFilter => ({
   meals: unique(splitValues(params.meal).filter(isMeal)),
@@ -64,6 +73,7 @@ export const parseRecipeFilter = (params: SearchParams): RecipeFilter => ({
   order: params.order === "oldest" ? "oldest" : "newest",
   view: params.view === "list" ? "list" : "card",
   query: ([params.q ?? ""].flat()[0] ?? "").trim().slice(0, MAX_QUERY_LENGTH),
+  page: parsePage(params.page),
 });
 
 /** 条件を URL の検索パラメータ（? の後ろ）にする。既定と同じ項目は書かず、条件がなければ空文字 */
@@ -77,6 +87,7 @@ export const toRecipeQuery = (filter: RecipeFilter): string =>
     ["view", filter.view === "list" ? "list" : ""],
     // 検索の言葉だけは自由な文字なので、URL で使える形に変える
     ["q", encodeURIComponent(filter.query.trim())],
+    ["page", filter.page > 1 ? String(filter.page) : ""],
   ]
     .filter(([, value]) => value !== "")
     // ほかの値は英数字と「-」だけなので、カンマを残したまま読みやすい形にする
