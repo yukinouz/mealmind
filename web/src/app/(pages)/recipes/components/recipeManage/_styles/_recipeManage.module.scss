@@ -1,0 +1,254 @@
+@use "responsive";
+@use "variables";
+
+// 「レシピを整理する」のボタン。♡のみと同じ大きさで、整理中はメインカラーで塗る
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: variables.space(8);
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+  font-weight: 700;
+  width: auto;
+
+  @include responsive.mq-max(md) {
+    padding-inline: variables.space(12);
+    min-height: 32px;
+    font-size: 13px;
+  }
+
+  @include responsive.mq-min(md) {
+    padding-inline: variables.space(16);
+    min-height: 38px;
+    font-size: 14px;
+  }
+
+  > svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+
+  &[aria-pressed="true"] {
+    border-color: variables.$color-orange500;
+    background-color: variables.$color-orange500;
+    color: variables.$color-white;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+// 整理中のお知らせ。♡のみなどの行と同じ役割の中なので、間は 12px
+.bannerArea {
+  display: grid;
+  row-gap: variables.space(8);
+  margin-top: variables.space(12);
+}
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: variables.space(12);
+  padding: variables.space(12) variables.space(12) variables.space(12) 20px;
+  border-radius: variables.$radius16;
+  background-color: variables.$color-orange100;
+  color: variables.$color-orange800;
+}
+
+.bannerText {
+  font-weight: 700;
+}
+
+.finish {
+  min-height: 38px;
+  padding-inline: 20px;
+  border: 1px solid variables.$color-orange500;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-white;
+  color: variables.$color-orange800;
+  font-size: 14px;
+  font-weight: 700;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  @media (hover: hover) {
+    &:hover:enabled {
+      cursor: pointer;
+    }
+  }
+}
+
+.error {
+  padding-left: 20px;
+  color: variables.$color-pink900;
+  font-weight: 700;
+}
+
+// 一覧の1件。カードでは整理のボタンをカードの下に出す
+.card {
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(12);
+}
+
+// リストでは整理のボタンを行の右に出す。狭い画面では行の下に回す
+.list {
+  background-color: variables.$color-white;
+
+  @include responsive.mq-min(md) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .actions {
+    @include responsive.mq-max(md) {
+      padding: 0 variables.space(16) variables.space(12);
+    }
+
+    @include responsive.mq-min(md) {
+      padding-right: 20px;
+    }
+  }
+}
+
+// 削除予定のレシピは薄くする
+.content[data-pending="true"] {
+  opacity: 0.45;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: variables.space(8);
+}
+
+.pendingLabel {
+  padding: 2px 10px;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-pink100;
+  color: variables.$color-pink900;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.delete,
+.cancel {
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding-inline: 14px;
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+  font-size: 14px;
+  font-weight: 700;
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.delete {
+  border-color: variables.$color-pink200;
+  color: variables.$color-pink900;
+
+  > svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+// 削除予定を残したまま整理をやめようとしたときの確認
+.dialog {
+  width: calc(100% - 40px);
+  max-width: 420px;
+  margin: auto;
+  padding: 28px;
+  border: none;
+  border-radius: variables.$radius20;
+  background-color: variables.$color-white;
+  color: variables.$color-black;
+  box-shadow: 0 8px 24px rgba(60, 30, 10, 0.2);
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+    row-gap: variables.space(12);
+  }
+
+  &::backdrop {
+    background-color: rgba(31, 26, 23, 0.4);
+  }
+}
+
+.dialogTitle {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dialogText {
+  color: variables.$color-text-sub;
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: variables.space(8);
+  margin-top: variables.space(12);
+}
+
+.discard,
+.keep {
+  min-height: 44px;
+  padding-inline: 20px;
+  border-radius: variables.$radius-pill;
+  font-size: 14px;
+  font-weight: 700;
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.discard {
+  border: 1px solid variables.$color-border;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+}
+
+.keep {
+  border: none;
+  background-color: variables.$color-orange500;
+  color: variables.$color-white;
+}

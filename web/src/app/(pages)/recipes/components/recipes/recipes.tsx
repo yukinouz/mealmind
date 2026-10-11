@@ -15,6 +15,8 @@ import {
 import { IngredientsFiller } from "../ingredientsFiller/ingredientsFiller";
 import { Pagination } from "../pagination/pagination";
 import { RecipeFilter } from "../recipeFilter/recipeFilter";
+import { ManageBanner } from "../recipeManage/manageBanner";
+import { ManageItem } from "../recipeManage/manageItem";
 import styles from "./_styles/_recipes.module.scss";
 
 interface RecipesProps {
@@ -43,7 +45,7 @@ const NoMatch = ({ order, view }: NoMatchProps) => {
   );
 };
 
-/** レシピ一覧の中身。絞り込み欄と、条件に合うレシピのカード（1ページ9件）とページ送り */
+/** レシピ一覧の中身。絞り込み欄と、条件に合うレシピのカード（1ページ9件）とページ送り。「レシピを整理する」で一覧から削除できる */
 const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
   const [allRecipes, channels, unfilled] = await Promise.all([
     readRecipes(),
@@ -55,19 +57,27 @@ const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
 
   // URL にある sources.json にないチャンネルは捨てる。残すと、どのボタンも選ばれていない見た目になる
   const channelIds = new Set(channels.map((channel) => channel.id));
-  const filter = {
+  const channelFilter = {
     ...requestedFilter,
     channels: requestedFilter.channels.filter((id) => channelIds.has(id)),
   };
 
   // 並び順の既定は、追加が新しい順
-  const recipes = sortRecipes(filterRecipes(allRecipes, filter), filter.order);
-  // 範囲外のページ（?page=99 など）も、0件と同じお知らせにする
+  const recipes = sortRecipes(
+    filterRecipes(allRecipes, channelFilter),
+    channelFilter.order,
+  );
+  // 範囲外のページ（?page=99 や、最後のページを全部削除したあと）は、最後のページを出す
+  const filter = {
+    ...channelFilter,
+    page: Math.min(channelFilter.page, countPages(recipes.length)),
+  };
   const pageRecipes = slicePage(recipes, filter.page);
   return (
     <>
       {unfilled.length > 0 && <IngredientsFiller target="recipes" />}
       <RecipeFilter filter={filter} channels={channels} />
+      <ManageBanner />
       {pageRecipes.length === 0 ? (
         <NoMatch order={filter.order} view={filter.view} />
       ) : (
@@ -75,11 +85,17 @@ const Recipes = async ({ filter: requestedFilter }: RecipesProps) => {
           <ul className={filter.view === "list" ? styles.rows : styles.list}>
             {pageRecipes.map((recipe) => (
               <li key={recipe.id}>
-                <RecipeCard
-                  recipe={recipe}
-                  isFavorite={recipe.isFavorite}
+                <ManageItem
+                  recipeId={recipe.id}
+                  title={recipe.title}
                   layout={filter.view}
-                />
+                >
+                  <RecipeCard
+                    recipe={recipe}
+                    isFavorite={recipe.isFavorite}
+                    layout={filter.view}
+                  />
+                </ManageItem>
               </li>
             ))}
           </ul>

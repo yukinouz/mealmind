@@ -22,6 +22,7 @@ import {
   toggleValue,
   toRecipeQuery,
 } from "@/utils/recipeFilter";
+import { ManageToggle } from "../recipeManage/manageToggle";
 import styles from "./_styles/_recipeFilter.module.scss";
 
 // 打ち終わってから URL に反映するまでの待ち時間。打つたびにサーバーで作り直さないようにする
@@ -242,7 +243,7 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
 };
 
 /**
- * レシピ一覧の絞り込み欄と、その下の ♡のみ・並び順・表示形式・検索の行。条件は URL に持たせ、一覧の絞り込みと並べ替えはサーバーで行う
+ * レシピ一覧の絞り込み欄と、その下の ♡のみ・並び順・表示形式・レシピを整理する・検索の行。条件は URL に持たせ、一覧の絞り込みと並べ替えはサーバーで行う
  * 押したらすぐ選択の見た目を変え、URL の書き換えはその後に行う
  */
 export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
@@ -333,6 +334,7 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
             view={shownFilter.view}
             onChange={(view) => changeFilter({ ...shownFilter, view })}
           />
+          <ManageToggle />
         </div>
         <SearchBox
           query={shownFilter.query}
