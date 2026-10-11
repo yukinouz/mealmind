@@ -40,13 +40,15 @@ $shadow-card:
 
 // space
 
-$space4: 4px;
-$space8: 8px;
-$space12: 12px;
-$space16: 16px;
-$space24: 24px;
-$space48: 48px;
-$space56: 56px;
+// 余白は 4px 刻みにする。space(28) と書くと 28px になる
+// 4 の倍数でない値を書いたときは、ビルドを止めて知らせる
+@function space($value) {
+  @if $value % 4 != 0 {
+    @error "余白は 4px 刻みにします（space(#{$value}) は使えません）";
+  }
+
+  @return $value * 1px;
+}
 
 // opacity
 $hover-opacity: 0.8;
