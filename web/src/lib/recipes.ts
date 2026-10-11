@@ -22,7 +22,7 @@ export type Recipe = {
   registeredAt: string;
 };
 
-/** 画面から記録するレシピ。材料とメイン食材は、あとでレシピ一覧を開いたときに埋める（ADR-0010） */
+/** 画面から記録するレシピ。材料とメイン食材は、あとでレシピを見せるページを開いたときに埋める（ADR-0010） */
 export interface NewRecipe {
   id: string;
   title: string;
@@ -30,6 +30,23 @@ export interface NewRecipe {
   sourceId: string;
   channel: string;
   meal: Meal;
+}
+
+/** 材料とメイン食材を埋めるファイル。recipes はレシピ一覧、excluded は非表示のレシピのページで埋める */
+export type FillTarget = "recipes" | "excluded";
+
+/** 材料とメイン食材がまだないレシピ（埋めるために使う項目だけ） */
+export interface UnfilledRecipe {
+  id: string;
+  title: string;
+  sourceId: string;
+}
+
+/** Claude が決めた、1件分の材料とメイン食材 */
+export interface FilledIngredients {
+  id: string;
+  ingredients: { name: string; amount: string }[];
+  mainIngredients: string[];
 }
 
 // 一覧で使わない項目（材料など）も消さないよう、型で絞らずにそのまま読み書きする
@@ -153,12 +170,78 @@ export const undoReject = (url: string) =>
     await writeJsonSafely(EXCLUDED_PATH, { ...data, excluded });
   });
 
+/**
+ * 指定したファイルから、メイン食材がまだない YouTube のレシピを探す
+ * 画面から記録したレシピは、材料とメイン食材の項目を持たない（ADR-0010）
+ */
+export const findUnfilled = async (
+  target: FillTarget,
+): Promise<UnfilledRecipe[]> => {
+  const entries = await readEntries(target);
+
+  return entries.filter(isUnfilled).map((item) => ({
+    id: item.id as string,
+    title: item.title as string,
+    sourceId: item.sourceId as string,
+  }));
+};
+
+/** recipes.json に記録したメイン食材の名前を、重ならないように集める */
+export const readMainIngredientNames = async (): Promise<string[]> => {
+  const data = await readRecipesFile();
+  const names = data.recipes.flatMap(
+    (item) => (item.mainIngredients as string[] | undefined) ?? [],
+  );
+  return [...new Set(names)];
+};
+
+/** 指定したファイルに材料とメイン食材を書き込む。読み直したときにすでに埋まっていたレシピには書かない */
+export const fillIngredients = (
+  target: FillTarget,
+  filled: FilledIngredients[],
+) =>
+  inOrder(async () => {
+    const byId = new Map(filled.map((item) => [item.id, item]));
+    /** まだ埋まっていなければ、Claude の結果を足す */
+    const fill = (item: JsonRecord): JsonRecord => {
+      const result = byId.get(item.id as string);
+      if (result === undefined || !isUnfilled(item)) return item;
+
+      return {
+        ...item,
+        ingredients: result.ingredients,
+        mainIngredients: result.mainIngredients,
+      };
+    };
+
+    if (target === "recipes") {
+      const data = await readRecipesFile();
+      await writeJsonSafely(RECIPES_PATH, {
+        ...data,
+        recipes: data.recipes.map(fill),
+      });
+      return;
+    }
+
+    const data = await readExcludedFile();
+    await writeJsonSafely(EXCLUDED_PATH, {
+      ...data,
+      excluded: data.excluded.map(fill),
+    });
+  });
+
 /** 追加した日時（registeredAt）が新しい順に並べた、新しい配列を返す */
 // 時差の表記が違っても正しく比べられるよう、日時に変換してから比べる
 export const sortByNewest = (recipes: Recipe[]): Recipe[] =>
   recipes.toSorted(
     (a, b) => Date.parse(b.registeredAt) - Date.parse(a.registeredAt),
   );
+
+/** メイン食材がまだない YouTube のレシピか。クラシルは説明文がないので埋められない */
+const isUnfilled = (item: JsonRecord): boolean =>
+  item.mainIngredients === undefined &&
+  typeof item.url === "string" &&
+  item.url.startsWith("https://www.youtube.com/watch?v=");
 
 /** 一覧になければ足した、新しい配列を返す */
 const addOnce = <T>(list: T[], value: T): T[] =>
@@ -182,6 +265,12 @@ const readRecipesFile = () =>
 /** excluded.json を読む */
 const readExcludedFile = () =>
   readJson<ExcludedFile>(EXCLUDED_PATH, { schemaVersion: 1, excluded: [] });
+
+/** 指定したファイルの、レシピの一覧だけを読む */
+const readEntries = async (target: FillTarget): Promise<JsonRecord[]> =>
+  target === "recipes"
+    ? (await readRecipesFile()).recipes
+    : (await readExcludedFile()).excluded;
 
 // 書き込みの順番待ち。読んでから書くまでの間に別の書き込みが割り込むと、片方の変更が消えるため
 let queue: Promise<unknown> = Promise.resolve();
