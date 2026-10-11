@@ -94,13 +94,21 @@
   }
 }
 
-// ♡のみ・並び順の行。絞り込み欄と同じ役割の中なので、間は 12px
+// ♡のみ・並び順と検索の行。絞り込み欄と同じ役割の中なので、間は 12px
 .controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: variables.space(12);
   margin-top: variables.space(12);
+}
+
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.space(12);
 }
 
 // 押せるものの高さ（小）38px
@@ -174,4 +182,75 @@
 .order[data-order="newest"] .arrowDown,
 .order[data-order="oldest"] .arrowUp {
   stroke: variables.$color-black;
+}
+
+// 検索欄。押せるものの高さ（中）44px
+.search {
+  display: flex;
+  flex: 0 1 360px;
+  align-items: center;
+  gap: variables.space(4);
+  min-width: 240px;
+  height: 44px;
+  padding: 0 6px 0 variables.space(16);
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-white;
+
+  &:focus-within {
+    border-color: variables.$color-orange500;
+    box-shadow: 0 0 0 3px rgba(250, 141, 46, 0.25);
+  }
+}
+
+.searchIcon {
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding-inline: variables.space(8);
+  border: none;
+  background: transparent;
+  color: variables.$color-black;
+  font-size: 15px;
+
+  &::placeholder {
+    color: variables.$color-placeholder;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  // ブラウザが出す「×」は使わず、デザインの「×」を出す
+  &::-webkit-search-cancel-button {
+    appearance: none;
+  }
+}
+
+.searchClear {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: variables.$color-divider-light;
+  color: variables.$color-text-sub;
+
+  > svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
 }

@@ -1,7 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { startTransition, useOptimistic } from "react";
+import {
+  startTransition,
+  useEffect,
+  useOptimistic,
+  useRef,
+  useState,
+} from "react";
 import type { Meal } from "@/lib/recipes";
 import type { Channel } from "@/lib/sources";
 import type { Cuisine } from "@/utils/cuisine";
@@ -14,6 +21,9 @@ import {
   toRecipeQuery,
 } from "@/utils/recipeFilter";
 import styles from "./_styles/_recipeFilter.module.scss";
+
+// 打ち終わってから URL に反映するまでの待ち時間。打つたびにサーバーで作り直さないようにする
+const SEARCH_DELAY_MS = 300;
 
 const MEAL_OPTIONS: Option<Meal>[] = [
   { value: "lunch", label: "昼食" },
@@ -47,6 +57,11 @@ interface FavoriteToggleProps {
 interface OrderToggleProps {
   order: RecipeOrder;
   onChange: (order: RecipeOrder) => void;
+}
+
+interface SearchBoxProps {
+  query: string;
+  onSearch: (query: string) => void;
 }
 
 interface RecipeFilterProps {
@@ -131,7 +146,74 @@ const OrderToggle = ({ order, onChange }: OrderToggleProps) => {
 };
 
 /**
- * レシピ一覧の絞り込み欄と、その下の ♡のみ・並び順の行。条件は URL に持たせ、一覧の絞り込みと並べ替えはサーバーで行う
+ * 料理名・食材・チャンネル名の検索欄。打った言葉は少し待ってから onSearch で渡す
+ * URL の言葉がほかの操作（条件をすべて解除など）で変わったときは、欄の中身もそれに合わせる
+ */
+const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
+  const [text, setText] = useState(query);
+  // 最後に自分で渡した言葉。URL がこれと違う値に変わったら、外から変えられたと分かる
+  const sentQueryRef = useRef(query);
+
+  useEffect(() => {
+    if (query === sentQueryRef.current) return;
+
+    sentQueryRef.current = query;
+    setText(query);
+  }, [query]);
+
+  useEffect(() => {
+    if (text.trim() === sentQueryRef.current) return;
+
+    const timer = setTimeout(() => {
+      sentQueryRef.current = text.trim();
+      onSearch(text.trim());
+    }, SEARCH_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [text, onSearch]);
+
+  /** 「×」で消したときは、待たずにすぐ反映する */
+  const clear = () => {
+    setText("");
+    sentQueryRef.current = "";
+    onSearch("");
+  };
+
+  return (
+    <search className={styles.search}>
+      <Image
+        className={styles.searchIcon}
+        src="/images/icons/search.svg"
+        alt="虫眼鏡のアイコン"
+        width={20}
+        height={20}
+      />
+      <input
+        className={styles.searchInput}
+        type="search"
+        aria-label="レシピを検索"
+        placeholder="料理名・食材・チャンネル名で検索"
+        autoComplete="off"
+        value={text}
+        onChange={(event) => setText(event.target.value)}
+      />
+      {text !== "" && (
+        <button
+          className={styles.searchClear}
+          type="button"
+          aria-label="検索語を消す"
+          onClick={clear}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      )}
+    </search>
+  );
+};
+
+/**
+ * レシピ一覧の絞り込み欄と、その下の ♡のみ・並び順・検索の行。条件は URL に持たせ、一覧の絞り込みと並べ替えはサーバーで行う
  * 押したらすぐ選択の見た目を変え、URL の書き換えはその後に行う
  */
 export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
@@ -195,15 +277,21 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
         />
       </section>
       <div className={styles.controls}>
-        <FavoriteToggle
-          isFavoriteOnly={shownFilter.isFavoriteOnly}
-          onChange={(isFavoriteOnly) =>
-            changeFilter({ ...shownFilter, isFavoriteOnly })
-          }
-        />
-        <OrderToggle
-          order={shownFilter.order}
-          onChange={(order) => changeFilter({ ...shownFilter, order })}
+        <div className={styles.toggles}>
+          <FavoriteToggle
+            isFavoriteOnly={shownFilter.isFavoriteOnly}
+            onChange={(isFavoriteOnly) =>
+              changeFilter({ ...shownFilter, isFavoriteOnly })
+            }
+          />
+          <OrderToggle
+            order={shownFilter.order}
+            onChange={(order) => changeFilter({ ...shownFilter, order })}
+          />
+        </div>
+        <SearchBox
+          query={shownFilter.query}
+          onSearch={(query) => changeFilter({ ...shownFilter, query })}
         />
       </div>
     </>
