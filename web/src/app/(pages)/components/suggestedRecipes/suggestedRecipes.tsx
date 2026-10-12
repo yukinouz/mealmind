@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { type Decision, setDecisionAction } from "@/actions/decision";
 import type { PickState } from "@/actions/pick-recipe";
 import { Inner } from "@/app/(pages)/components/inner/inner";
@@ -18,6 +18,8 @@ const CHOICES: { value: Decision; label: string }[] = [
 
 // カードが順番に出てくるときの、1枚ごとの遅れ
 const ENTER_DELAY_MS = 70;
+// 選んだカードが消える動きの長さ。_suggestedRecipes.module.scss の leave と合わせる
+const LEAVE_MS = 240;
 
 interface ChoiceButtonsProps {
   title: string;
@@ -81,13 +83,22 @@ const SuggestedContent = ({ state }: SuggestedRecipesProps) => {
   const [hasSaveError, setHasSaveError] = useState(false);
   // 抽選し直したら、選んだカードの記録を空に戻す（スキップした動画がまた選ばれることがあるため）
   const [shownState, setShownState] = useState(state);
-  const headingRef = useRef<HTMLHeadingElement>(null);
+  // 記録の結果やタイマーが返ってきたときに、いまの抽選結果と消えていく途中のカードを確かめるために使う
+  const currentStateRef = useRef(state);
+  const leavingIdsRef = useRef(new Set<string>());
+  const listRef = useRef<HTMLUListElement>(null);
+  const allChosenRef = useRef<HTMLOutputElement>(null);
+
+  useEffect(() => {
+    currentStateRef.current = state;
+  }, [state]);
 
   if (state !== shownState) {
     setShownState(state);
     setLeaving({});
     setRemovedIds([]);
     setHasSaveError(false);
+    leavingIdsRef.current.clear();
   }
 
   if (state.type === "idle") return null;
@@ -100,58 +111,84 @@ const SuggestedContent = ({ state }: SuggestedRecipesProps) => {
     );
   }
 
+  const shownRecipes = state.recipes.filter(
+    (recipe) => !removedIds.includes(recipe.videoId),
+  );
+  const isAllChosen = shownRecipes.length === 0;
+
   /** 記録できなかったカードを、消える前の状態に戻す */
   const restoreCard = (id: string) => {
+    leavingIdsRef.current.delete(id);
     setLeaving(({ [id]: _removed, ...rest }) => rest);
     setRemovedIds((ids) => ids.filter((removedId) => removedId !== id));
     setHasSaveError(true);
   };
 
+  /**
+   * 押したボタンは押せなくなってフォーカスが外れるので、次に残るカード（なければ前のカード）の最初のボタンへ移す
+   * 残るカードがなければ、「すべて選びました」のお知らせへ移す
+   */
+  const moveFocus = (id: string) => {
+    const remaining = shownRecipes.filter(
+      (recipe) => recipe.videoId !== id && !(recipe.videoId in leaving),
+    );
+    const index = shownRecipes.findIndex((recipe) => recipe.videoId === id);
+    const next =
+      remaining.find((recipe) => shownRecipes.indexOf(recipe) > index) ??
+      remaining.at(-1);
+    if (next === undefined) return allChosenRef.current?.focus();
+
+    listRef.current
+      ?.querySelector<HTMLButtonElement>(
+        `[data-video-id="${next.videoId}"] button[data-choice]`,
+      )
+      ?.focus();
+  };
+
   /** 先にカードを消し始めてから記録し、記録できなかったときはカードを戻す */
   const choose = (recipe: PickedRecipe, decision: Decision) => {
-    setLeaving((current) => ({ ...current, [recipe.videoId]: decision }));
+    const id = recipe.videoId;
+    leavingIdsRef.current.add(id);
+    setLeaving((current) => ({ ...current, [id]: decision }));
     setHasSaveError(false);
-    // 押したボタンは押せなくなって選択が外れるので、見出しへ移しておく
-    headingRef.current?.focus();
+    moveFocus(id);
+    // 消える動きの長さ（CSS の leave）だけ待って取り除く。記録に失敗して戻したカードは取り除かない
+    setTimeout(() => {
+      if (!leavingIdsRef.current.has(id)) return;
+      setRemovedIds((ids) => (ids.includes(id) ? ids : [...ids, id]));
+    }, LEAVE_MS);
     if (decision === "skip") return;
 
+    const pickedState = state;
     startTransition(async () => {
       const result = await setDecisionAction({
         recipe: toNewRecipe(recipe),
         decision,
       });
-      if (result.type === "error") restoreCard(recipe.videoId);
+      // 記録を待つ間に抽選し直していたら、前の抽選のカードなので戻さない
+      if (result.type === "saved" || currentStateRef.current !== pickedState) {
+        return;
+      }
+      restoreCard(id);
     });
   };
 
-  /** 消える動きが終わったカードを取り除く。出てくる動きの終わりや、中の部品の動きでは何もしない */
-  const removeCard = (
-    id: string,
-    event: React.AnimationEvent<HTMLLIElement>,
-  ) => {
-    if (event.target !== event.currentTarget || !(id in leaving)) return;
-
-    setRemovedIds((ids) => [...ids, id]);
-  };
-
-  const shownRecipes = state.recipes.filter(
-    (recipe) => !removedIds.includes(recipe.videoId),
-  );
-
   return (
     <>
-      <h2 className={styles.heading} ref={headingRef} tabIndex={-1}>
-        提案したレシピ
-      </h2>
+      <h2 className={styles.heading}>提案したレシピ</h2>
       {hasSaveError && (
         <Notice isAlert>記録できませんでした。もう一度押してください。</Notice>
       )}
-      {shownRecipes.length === 0 && (
-        <Notice>
-          提案したレシピをすべて選びました。「レシピを選ぶ」を押すと、次のレシピを提案します。
-        </Notice>
-      )}
-      <ul className={styles.list}>
+      {/* 読み上げソフトが変化に気づけるよう、お知らせの入れ物（output は role="status" と同じ）は常に置いて中身だけを替える */}
+      <output
+        className={isAllChosen ? styles.notice : undefined}
+        ref={allChosenRef}
+        tabIndex={-1}
+      >
+        {isAllChosen &&
+          "提案したレシピをすべて選びました。「レシピを選ぶ」を押すと、次のレシピを提案します。"}
+      </output>
+      <ul className={styles.list} ref={listRef}>
         {/* key を動画ごとに変えるので、別の動画が選ばれるたびに出てくる動きがやり直される */}
         {shownRecipes.map((recipe) => {
           const isLeaving = recipe.videoId in leaving;
@@ -162,11 +199,11 @@ const SuggestedContent = ({ state }: SuggestedRecipesProps) => {
             <li
               className={styles.item}
               key={recipe.videoId}
+              data-video-id={recipe.videoId}
               data-leaving={isLeaving || undefined}
               style={
                 isLeaving ? undefined : { animationDelay: `${enterDelay}ms` }
               }
-              onAnimationEnd={(event) => removeCard(recipe.videoId, event)}
             >
               <RecipeCard
                 recipe={{

@@ -4,11 +4,6 @@
   font-size: 20px;
   font-weight: 700;
   margin-bottom: variables.space(20);
-
-  // カードを選んだあとに見出しへ移すだけなので、枠は出さない
-  &:focus {
-    outline: none;
-  }
 }
 
 .list {
@@ -28,14 +23,9 @@
     animation: none;
   }
 
-  // 選んだカードは、小さくなりながら消える。消え終わったら画面から取り除く
+  // 選んだカードは、小さくなりながら消える。長さは suggestedRecipes.tsx の LEAVE_MS と合わせる
   &[data-leaving] {
     animation: leave 240ms ease forwards;
-
-    // 動きを減らす設定でも、取り除くきっかけ（animationend）が届くよう、ごく短く動かす
-    @media (prefers-reduced-motion: reduce) {
-      animation-duration: 1ms;
-    }
   }
 }
 
@@ -106,7 +96,13 @@
   }
 }
 
+// 「すべて選びました」はカードを選んだあとにフォーカスを移すだけなので、枠は出さない
+.notice:focus {
+  outline: none;
+}
+
 .notice {
+  display: block;
   padding: variables.space(20);
   border-radius: variables.$radius16;
   background-color: variables.$color-white;
