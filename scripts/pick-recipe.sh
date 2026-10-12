@@ -24,6 +24,7 @@ set -euo pipefail
 readonly ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 readonly DATA_DIR="$ROOT_DIR/data"
 readonly CACHE_DIR="$DATA_DIR/cache"
+readonly PERSONAL_DIR="$DATA_DIR/personal"
 
 # 引数をキーワードとスキップ対象に分ける
 keywords=()
@@ -68,7 +69,7 @@ read_json() {
   if [[ -f "$1" ]]; then cat "$1"; else echo "$2"; fi
 }
 
-prefs="$(read_json "$DATA_DIR/preferences.json" '{}')"
+prefs="$(read_json "$PERSONAL_DIR/preferences.json" '{}')"
 
 # meals が登録されているのに、その食事がなければ打ち間違いとしてエラーにする
 if ! jq -e --arg meal "$meal" '(.meals // {}) | length == 0 or has($meal)' <<<"$prefs" >/dev/null; then
@@ -94,12 +95,12 @@ cache_files=("$CACHE_DIR"/videos-*.json)
 shopt -u nullglob
 
 jq -n \
-  --argjson sources "$(read_json "$DATA_DIR/sources.json" '{"sources":[]}')" \
+  --argjson sources "$(read_json "$PERSONAL_DIR/sources.json" '{"sources":[]}')" \
   --argjson settings "$(read_json "$DATA_DIR/settings.json" '{}')" \
   --argjson prefs "$prefs" \
   --arg meal "$meal" \
-  --argjson recipes "$(read_json "$DATA_DIR/recipes.json" '{"recipes":[]}')" \
-  --argjson excluded "$(read_json "$DATA_DIR/excluded.json" '{"excluded":[]}')" \
+  --argjson recipes "$(read_json "$PERSONAL_DIR/recipes.json" '{"recipes":[]}')" \
+  --argjson excluded "$(read_json "$PERSONAL_DIR/excluded.json" '{"excluded":[]}')" \
   --argjson keywords "$(to_json_array ${keywords[@]+"${keywords[@]}"})" \
   --argjson skips "$(to_json_array ${skips[@]+"${skips[@]}"})" \
   --argjson randoms "$randoms" \

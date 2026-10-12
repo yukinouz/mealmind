@@ -4,7 +4,7 @@
 # 使い方: scripts/fetch-videos.sh <sourceId>
 #   例:   scripts/fetch-videos.sh ryuji
 #
-# - sourceId は data/sources.json の id（type が youtube のもの）
+# - sourceId は data/personal/sources.json の id（type が youtube のもの）
 # - APIキーは環境変数 YOUTUBE_API_KEY から読む。未設定なら .env から読み込む
 # - APIキーは URL ではなくヘッダーで渡し、画面には一切出さない
 # - ショート動画を見分けるため、動画ごとの長さ（秒）も取得する
@@ -12,7 +12,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 readonly ROOT_DIR
-readonly SOURCES_FILE="$ROOT_DIR/data/sources.json"
+readonly SOURCES_FILE="$ROOT_DIR/data/personal/sources.json"
 readonly CACHE_DIR="$ROOT_DIR/data/cache"
 readonly PLAYLIST_API_URL="https://www.googleapis.com/youtube/v3/playlistItems"
 readonly VIDEOS_API_URL="https://www.googleapis.com/youtube/v3/videos"
@@ -37,7 +37,7 @@ fi
 # sources.json からチャンネルIDを探す
 channel_id="$(jq -r --arg id "$source_id" \
   '.sources[] | select(.id == $id and .type == "youtube") | .channelId' "$SOURCES_FILE")"
-[[ -z "$channel_id" ]] && fail "YouTube の提案元 '$source_id' が data/sources.json に見つかりません"
+[[ -z "$channel_id" ]] && fail "YouTube の提案元 '$source_id' が data/personal/sources.json に見つかりません"
 
 # API を呼び出して結果をファイルに保存する。エラーなら終了する
 # 使い方: call_api <URL> <保存先> <説明> [curl の引数 ...]

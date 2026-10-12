@@ -18,7 +18,12 @@ const execFileAsync = promisify(execFile);
 // npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
 const ROOT_DIR = path.resolve(process.cwd(), "..");
 const RULES_PATH = path.join(ROOT_DIR, "prompts", "record-ingredients.md");
-const PREFERENCES_PATH = path.join(ROOT_DIR, "data", "preferences.json");
+const PREFERENCES_PATH = path.join(
+  ROOT_DIR,
+  "data",
+  "personal",
+  "preferences.json",
+);
 const CACHE_DIR = path.join(ROOT_DIR, "data", "cache");
 
 // 試したときは1件で約7秒。件数が多いときのために余裕を持たせる

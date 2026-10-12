@@ -9,10 +9,5 @@ CLAUDE.md
 # cache（scripts/fetch-videos.sh で再取得できる）
 data/cache/
 
-# 個人データ（公開リポジトリのため記録しない）
-data/sources.json
-data/preferences.json
-data/preferences.md
-data/recipes.json
-data/excluded.json
-data/*.tmp
+# 個人データ（mealmind-data リポジトリへのリンク。公開リポジトリのため記録しない）
+data/personal

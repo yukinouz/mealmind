@@ -1,6 +1,6 @@
 # 材料・メイン食材・料理の系統の書き方
 
-レシピを `data/recipes.json`・`data/excluded.json` に記録するときの、`ingredients`・`mainIngredients`・`cuisine` の決まりです。`suggest` スキルと Web（レシピを見せるページを開いたときに埋める処理）の両方が使います。
+レシピを `data/personal/recipes.json`・`data/personal/excluded.json` に記録するときの、`ingredients`・`mainIngredients`・`cuisine` の決まりです。`suggest` スキルと Web（レシピを見せるページを開いたときに埋める処理）の両方が使います。
 
 ## ingredients
 
@@ -11,12 +11,12 @@
 ## mainIngredients
 
 - 料理の中心になる食材を最大3つ。材料の並び順ではなく、料理名と作り方から選ぶ
-- 入れない：調味料・油・水・だし・仕上げやお好みのもの・付け合わせの別の料理の材料・ご飯・常備している食材（`data/preferences.json` の `pantryIngredients`）
+- 入れない：調味料・油・水・だし・仕上げやお好みのもの・付け合わせの別の料理の材料・ご飯・常備している食材（`data/personal/preferences.json` の `pantryIngredients`）
 - 薬味は、常備していなければ少しだけ使うときも入れる
 - 3つを超えるときは、料理の中心になる食材（肉・魚・主な野菜・麺など）を先に選び、薬味を後にする
 - 麺（うどん・中華麺・パスタなど）とパンは入れる
 - 名前は部位まで分け、切り方・銘柄・注記は外す（例：豚バラ薄切り肉 → 豚バラ、鶏むね肉（皮なし） → 鶏むね肉）
-- すでに記録した名前（`data/recipes.json` の `mainIngredients`）と同じ食材なら、その名前を使う
+- すでに記録した名前（`data/personal/recipes.json` の `mainIngredients`）と同じ食材なら、その名前を使う
 
 ## cuisine
 

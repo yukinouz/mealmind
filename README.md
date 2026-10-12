@@ -44,14 +44,21 @@
    # .env を開いて YOUTUBE_API_KEY= の後にキーを書く
    ```
 
-4. 記入例をコピーして、提案元（チャンネル）と好みを設定する
+4. 個人データを置く非公開リポジトリ（`mealmind-data`）を `mealmind` と同じ階層に用意し、`data/personal` からリンクする
 
    ```sh
-   cp data/sources.example.json data/sources.json
-   cp data/preferences.example.json data/preferences.json   # 好みを設定しないなら不要
+   git clone <mealmind-data の URL> ../mealmind-data   # 初めてなら空のリポジトリを作って clone する
+   ln -s ../../mealmind-data data/personal
    ```
 
-5. 動画一覧を取得する（後述）
+5. 初めてなら、記入例をコピーして提案元（チャンネル）と好みを設定する
+
+   ```sh
+   cp data/sources.example.json data/personal/sources.json
+   cp data/preferences.example.json data/personal/preferences.json   # 好みを設定しないなら不要
+   ```
+
+6. 動画一覧を取得する（後述）
 
 API の利用は無料です。1日あたりの上限（10,000単位）があり、全チャンネルの一覧と動画の長さの取得で約280単位を使います。
 
@@ -90,21 +97,23 @@ scripts/pick-recipe.sh 豚バラ --count 5           # YouTube だけから、�
 
 ## データファイル
 
-すべて `data/` にあります。
+個人データは `data/personal/`（`mealmind-data` リポジトリへのリンク）に、それ以外は `data/` にあります。
 
-| ファイル           | 内容                                                                            | git                      |
-| ------------------ | ------------------------------------------------------------------------------- | ------------------------ |
-| `sources.json`     | 提案元の YouTube チャンネルと重み・画面に出す短い名前（`shortName`）            | 記録しない（個人データ） |
-| `settings.json`    | 抽選の設定（「作る」を選んだレシピ・お気に入りの重み、再提案しない日数）        | 記録する                 |
-| `preferences.json` | 使わない食材・使わない調味料・常備している食材・食事ごとのジャンル              | 記録しない（個人データ） |
-| `preferences.md`   | 好みの自由なメモ                                                                | 記録しない（個人データ） |
-| `recipes.json`     | 「作る」と決めたレシピ                                                          | 記録しない（個人データ） |
-| `excluded.json`    | 提案されないレシピ（「作らない」と決めたもの・作るレシピから外したもの）        | 記録しない（個人データ） |
-| `cache/`           | 動画一覧のキャッシュ（再取得できる）                                            | 記録しない               |
+| ファイル                    | 内容                                                                     | git                    |
+| --------------------------- | ------------------------------------------------------------------------ | ---------------------- |
+| `personal/sources.json`     | 提案元の YouTube チャンネルと重み・画面に出す短い名前（`shortName`）     | `mealmind-data` に記録 |
+| `settings.json`             | 抽選の設定（「作る」を選んだレシピ・お気に入りの重み、再提案しない日数） | 記録する               |
+| `personal/preferences.json` | 使わない食材・使わない調味料・常備している食材・食事ごとのジャンル       | `mealmind-data` に記録 |
+| `personal/preferences.md`   | 好みの自由なメモ                                                         | `mealmind-data` に記録 |
+| `personal/recipes.json`     | 「作る」と決めたレシピ                                                   | `mealmind-data` に記録 |
+| `personal/excluded.json`    | 提案されないレシピ（「作らない」と決めたもの・作るレシピから外したもの） | `mealmind-data` に記録 |
+| `cache/`                    | 動画一覧のキャッシュ（再取得できる）                                     | 記録しない             |
 
 `excluded.json` の1件は `recipes.json` と同じ項目を持ち、外した日時 `excludedAt` と理由 `reason`（`rejected`：提案で「作らない」を選んだ / `hidden`：作るレシピから外した）を加えます。作るレシピに戻せるようにするためです。
 
 `sources.json` と `preferences.json` には、記入例の `*.example.json` があります（記録する）。`sources.json` 以外の個人データのファイルは、なければ空として扱われます。
+
+`mealmind-data` は、`npm run dev`（`web/`）の直前に `scripts/sync-personal-data.sh` が GitHub と同期します（変更をコミット → 取り込み → 送信）。失敗しても警告だけで、Web は起動します。
 
 ### 書き方の決まり
 
