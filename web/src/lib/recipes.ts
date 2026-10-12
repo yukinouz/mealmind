@@ -123,25 +123,6 @@ export const recordMake = (recipe: NewRecipe) =>
     await writeJsonSafely(RECIPES_PATH, { ...data, recipes });
   });
 
-/**
- * 「作る」の取り消し。今日の日付を消し、日付が残らなければその1件を消す
- * 足した食事は戻さない（もともと持っていたかを覚えていないため）
- */
-export const undoMake = (url: string) =>
-  inOrder(async () => {
-    const today = toLocalDate(new Date());
-    const data = await readRecipesFile();
-    const recipes = data.recipes.flatMap((item) => {
-      if (item.url !== url) return [item];
-
-      const chosenDates = (item.chosenDates as string[]).filter(
-        (date) => date !== today,
-      );
-      return chosenDates.length === 0 ? [] : [{ ...item, chosenDates }];
-    });
-    await writeJsonSafely(RECIPES_PATH, { ...data, recipes });
-  });
-
 /** 「作らない」を記録する。同じ URL がすでにあれば何もしない */
 export const recordReject = (recipe: NewRecipe) =>
   inOrder(async () => {
@@ -162,16 +143,6 @@ export const recordReject = (recipe: NewRecipe) =>
       ...data,
       excluded: [...data.excluded, added],
     });
-  });
-
-/** 「作らない」の取り消し。提案で外したもの（rejected）だけを消す */
-export const undoReject = (url: string) =>
-  inOrder(async () => {
-    const data = await readExcludedFile();
-    const excluded = data.excluded.filter(
-      (item) => !(item.url === url && item.reason === "rejected"),
-    );
-    await writeJsonSafely(EXCLUDED_PATH, { ...data, excluded });
   });
 
 /**

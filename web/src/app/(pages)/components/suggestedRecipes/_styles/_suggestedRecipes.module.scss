@@ -22,6 +22,11 @@
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
+
+  // 選んだカードは、小さくなりながら消える。長さは suggestedRecipes.tsx の LEAVE_MS と合わせる
+  &[data-leaving] {
+    animation: leave 240ms ease forwards;
+  }
 }
 
 @keyframes enter {
@@ -33,6 +38,13 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes leave {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
   }
 }
 
@@ -58,33 +70,39 @@
     color 160ms ease,
     border-color 160ms ease;
 
-  &[aria-pressed="true"] {
+  &[data-chosen] {
     color: variables.$color-white;
   }
 
-  &[data-choice="make"][aria-pressed="true"] {
+  &[data-choice="make"][data-chosen] {
     border-color: variables.$color-orange500;
     background-color: variables.$color-orange500;
   }
 
-  &[data-choice="reject"][aria-pressed="true"] {
+  &[data-choice="reject"][data-chosen] {
     border-color: variables.$color-text-sub;
     background-color: variables.$color-text-sub;
   }
 
-  &[data-choice="skip"][aria-pressed="true"] {
+  &[data-choice="skip"][data-chosen] {
     border-color: variables.$color-gray500;
     background-color: variables.$color-gray500;
   }
 
   @media (hover: hover) {
-    &:hover {
+    &:hover:enabled {
       cursor: pointer;
     }
   }
 }
 
+// 「すべて選びました」はカードを選んだあとにフォーカスを移すだけなので、枠は出さない
+.notice:focus {
+  outline: none;
+}
+
 .notice {
+  display: block;
   padding: variables.space(20);
   border-radius: variables.$radius16;
   background-color: variables.$color-white;

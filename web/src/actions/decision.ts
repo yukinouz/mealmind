@@ -5,8 +5,6 @@ import {
   type NewRecipe,
   recordMake,
   recordReject,
-  undoMake,
-  undoReject,
 } from "@/lib/recipes";
 
 export type Decision = "make" | "reject" | "skip";
@@ -15,8 +13,7 @@ export type DecisionResult = { type: "saved" } | { type: "error" };
 
 export interface DecisionInput {
   recipe: NewRecipe;
-  previous: Decision | undefined;
-  next: Decision | undefined;
+  decision: Decision;
 }
 
 const MEALS: readonly string[] = ["dinner", "lunch"] satisfies Meal[];
@@ -47,41 +44,29 @@ const isNewRecipe = (value: unknown): value is NewRecipe => {
   );
 };
 
-/** 選択なし（undefined）か、正しい選択か */
-const isDecisionOrNone = (value: unknown): value is Decision | undefined =>
-  value === undefined ||
-  (typeof value === "string" && DECISIONS.includes(value));
+/** 正しい選択か */
+const isDecision = (value: unknown): value is Decision =>
+  typeof value === "string" && DECISIONS.includes(value);
 
-/** 前の選択の記録を取り消す。スキップは記録していないので何もしない */
-const undo = async (decision: Decision | undefined, url: string) => {
-  if (decision === "make") await undoMake(url);
-  if (decision === "reject") await undoReject(url);
-};
-
-/** 新しい選択を記録する。スキップは記録しない */
-const record = async (decision: Decision | undefined, recipe: NewRecipe) => {
+/** 選択を記録する。スキップは記録しない */
+const record = async (decision: Decision, recipe: NewRecipe) => {
   if (decision === "make") await recordMake(recipe);
   if (decision === "reject") await recordReject(recipe);
 };
 
-/** 提案したレシピの「作る / 作らない / スキップ」から呼ばれ、前の選択を取り消してから新しい選択を記録する */
+/** 提案したレシピの「作る / 作らない」から呼ばれ、選択を記録する。選んだカードは画面から消えるので、取り消しはない */
 export const setDecisionAction = async ({
   recipe,
-  previous,
-  next,
+  decision,
 }: DecisionInput): Promise<DecisionResult> => {
-  if (!isNewRecipe(recipe)) return { type: "error" };
-  if (!isDecisionOrNone(previous) || !isDecisionOrNone(next)) {
-    return { type: "error" };
-  }
+  if (!isNewRecipe(recipe) || !isDecision(decision)) return { type: "error" };
 
   // 余計な項目まで記録しないよう、確かめた項目だけで作り直す
   const { id, title, url, sourceId, channel, meal } = recipe;
   const checked: NewRecipe = { id, title, url, sourceId, channel, meal };
 
   try {
-    await undo(previous, checked.url);
-    await record(next, checked);
+    await record(decision, checked);
     return { type: "saved" };
   } catch {
     return { type: "error" };
