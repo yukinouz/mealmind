@@ -13,13 +13,11 @@
 #     onlyGenres  … このジャンルの言葉をどれか含む動画だけを候補にする
 #     avoidGenres / avoidTitleKeywords … これらの言葉を含む動画を外す
 # - --skip はこの会話でスキップした動画（何度でも指定できる）
-# - --count は Web の画面用。YouTube だけから、同じ動画が重ならないように最大その件数を選ぶ
+# - --count は Web の画面用。同じ動画が重ならないように最大その件数を選ぶ
 #
 # 出力（--count なし。type で分岐する）:
-#   youtube   … 候補の動画（タイトル・URL・概要欄など）
-#   kurashiru … クラシルが選ばれた（サイトでの検索は呼び出し側が行う）
-#               検索に使う言葉（キーワードかジャンルの言葉）がないときは、クラシルを抽選しない
-#   none      … 条件に合う候補がない
+#   youtube … 候補の動画（タイトル・URL・概要欄など）
+#   none    … 条件に合う候補がない
 # 出力（--count あり）: youtube の結果の配列。候補が足りなければ件数は減り、なければ空の配列
 set -euo pipefail
 
@@ -169,27 +167,23 @@ jq -n \
       if ($remaining | length) == 0 then {type: "none"}
       else
         pick_weighted($remaining; $randoms[$i]) as $source
-        | if $source.type == "kurashiru" then
-            {type: "kurashiru", sourceId: $source.id, channelName: $source.name, siteUrl: $source.url, keywords: $keywords, meal: $meal, avoidTitleKeywords: $avoidTitles, onlyTitleKeywords: $onlyTitles}
+        | ($source | cands | map(select(.url as $u | $picked | index($u) | not))) as $cands
+        | if ($cands | length) == 0 then try_sources($remaining - [$source]; $i + 2; $picked; cands)
           else
-            ($source | cands | map(select(.url as $u | $picked | index($u) | not))) as $cands
-            | if ($cands | length) == 0 then try_sources($remaining - [$source]; $i + 2; $picked; cands)
-              else
-                pick_weighted($cands; $randoms[$i + 1]) as $video
-                | {
-                    type: "youtube",
-                    meal: $meal,
-                    sourceId: $source.id,
-                    channelName: $source.name,
-                    title: $video.title,
-                    url: $video.url,
-                    videoId: $video.videoId,
-                    publishedAt: $video.publishedAt,
-                    status: $video.status,
-                    candidateCount: ($cands | length),
-                    description: $video.description
-                  }
-              end
+            pick_weighted($cands; $randoms[$i + 1]) as $video
+            | {
+                type: "youtube",
+                meal: $meal,
+                sourceId: $source.id,
+                channelName: $source.name,
+                title: $video.title,
+                url: $video.url,
+                videoId: $video.videoId,
+                publishedAt: $video.publishedAt,
+                status: $video.status,
+                candidateCount: ($cands | length),
+                description: $video.description
+              }
           end
       end;
 
@@ -204,16 +198,12 @@ jq -n \
       end;
 
     ($sources.sources | map(select(.isEnabled != false) | . + {w: .weight})) as $enabled
-    # クラシルはトップページから個別レシピを取れないので、検索に使う言葉がなければ外す
-    | (($keywords | length) > 0 or ($onlyTitles | length) > 0) as $canSearchKurashiru
     | if $count == "" then
         # 1件だけなので、抽選したチャンネルの候補だけをその場で作る
-        try_sources($enabled | map(select(.type != "kurashiru" or $canSearchKurashiru)); 0; []; candidates(.))
+        try_sources($enabled; 0; []; candidates(.))
       else
-        # 画面ではクラシルを検索できないので、YouTube だけから選ぶ
         # 何度も抽選するので、各チャンネルの候補は最初に1回だけ作る
-        ($enabled | map(select(.type != "kurashiru"))) as $youtubeSources
-        | ($youtubeSources | map({key: .id, value: candidates(.)}) | from_entries) as $candidatesById
-        | pick_many($youtubeSources; ($count | tonumber); 0; []; $candidatesById[.id])
+        ($enabled | map({key: .id, value: candidates(.)}) | from_entries) as $candidatesById
+        | pick_many($enabled; ($count | tonumber); 0; []; $candidatesById[.id])
       end
   ' ${cache_files[@]+"${cache_files[@]}"} </dev/null

@@ -67,7 +67,7 @@ export const RecipePicker = () => {
             <hgroup className={styles.hgroup}>
               <h1 className={styles.title}>今日、何作ろう？</h1>
               <p className={styles.lead}>
-                登録したYouTubeチャンネルとレシピサイトから、レシピを提案します
+                登録したYouTubeチャンネルから、レシピを提案します
               </p>
             </hgroup>
             <search className={styles.search}>

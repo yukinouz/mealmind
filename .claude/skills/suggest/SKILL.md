@@ -1,6 +1,6 @@
 ---
 name: suggest
-description: "登録した YouTube 料理チャンネルとクラシルから、今日作るレシピを1件ずつ提案する。ユーザーが「レシピを提案して」「今日何作ろう」「◯◯を使った料理」などと言ったときに使う。"
+description: "登録した YouTube 料理チャンネルから、今日作るレシピを1件ずつ提案する。ユーザーが「レシピを提案して」「今日何作ろう」「◯◯を使った料理」などと言ったときに使う。"
 ---
 
 # レシピ提案
@@ -36,22 +36,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 | type | 対応 |
 |---|---|
 | `youtube` | 3へ進む |
-| `kurashiru` | 「クラシルの場合」へ進む |
 | `none` | 候補がないことを伝え、キーワードを変えるか聞く |
-
-### クラシルの場合
-
-1. WebFetch で検索結果を取得し、レシピを数件（タイトルと `/recipes/<id>` の URL）得る
-   - キーワードあり：`https://www.kurashiru.com/search?query=<キーワード>`
-   - キーワードなし：出力の `onlyTitleKeywords` から乱数で1つ選んで検索する（例：「チャーハン」）。どちらもないときはスクリプトがクラシルを選ばない
-2. 次のレシピを除き、残りから乱数で1件選ぶ（例：`echo $(( $(od -An -N2 -tu2 /dev/urandom) % <件数> + 1 ))`）
-   - `data/excluded.json` にある URL、この会話でスキップした URL
-   - タイトルに、出力の `avoidTitleKeywords` のどれかを含むもの
-   - `onlyTitleKeywords` が空でないときは、タイトルにそのどれも含まないもの
-   - `data/recipes.json` で、`data/settings.json` の `resuggestAfterDays` 日以内に「作る」を選んだもの
-3. レシピページを WebFetch で開き、材料を取得する
-4. 材料に `avoidIngredients` / `avoidSeasonings` が含まれていたら、別のレシピを選ぶ
-5. 候補が残らなければ、`pick-recipe.sh` をもう一度実行する
 
 ## 3. 提案する
 
@@ -67,7 +52,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 1. これを作る　2. これは作らない　3. 今回はスキップ
 ```
 
-- YouTube の材料は、出力の `description` から [prompts/record-ingredients.md](../../../prompts/record-ingredients.md) の `ingredients` の決まりで書き出します
+- 材料は、出力の `description` から [prompts/record-ingredients.md](../../../prompts/record-ingredients.md) の `ingredients` の決まりで書き出します
 - 材料が複数の料理に分かれているときは、見出しごとにまとめます
 
 - タイトルは URL へのリンクにします
@@ -91,7 +76,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 
 ```json
 {
-  "id": "<YouTube は動画ID、クラシルは /recipes/ の後ろのID>",
+  "id": "<動画ID>",
   "title": "<タイトル>",
   "url": "<URL>",
   "sourceId": "<sources.json の id>",
@@ -114,7 +99,7 @@ scripts/pick-recipe.sh [キーワード ...] [--meal 食事] [--skip 動画IDま
 
 ```json
 {
-  "id": "<YouTube は動画ID、クラシルは /recipes/ の後ろのID>",
+  "id": "<動画ID>",
   "title": "<タイトル>",
   "url": "<URL>",
   "sourceId": "<sources.json の id>",
