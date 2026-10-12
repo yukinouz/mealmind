@@ -78,7 +78,7 @@ const HiddenRecipes = async ({ filter }: HiddenRecipesProps) => {
       <p>
         提案で「作らない」を選んだレシピと、一覧から削除したレシピです。ここにあるレシピは提案されません。
       </p>
-      <HiddenControls filter={filter} />
+      <HiddenControls filter={filter} hasRecipes={allRecipes.length > 0} />
       <ManageBanner />
       {allRecipes.length === 0 && (
         <p className={styles.message}>非表示レシピはありません。</p>
