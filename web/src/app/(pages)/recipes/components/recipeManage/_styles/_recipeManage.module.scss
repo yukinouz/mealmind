@@ -110,20 +110,6 @@
     align-items: center;
   }
 
-  // 非表示レシピのページへのリンク。お知らせの文字の位置にそろえる
-  .hiddenLink {
-    justify-self: start;
-    margin-left: 20px;
-    color: variables.$color-text-sub;
-    text-decoration: underline;
-
-    @media (hover: hover) {
-      &:hover {
-        opacity: variables.$hover-opacity;
-      }
-    }
-  }
-
   .actions {
     @include responsive.mq-max(md) {
       padding: 0 variables.space(16) variables.space(12);
@@ -131,6 +117,20 @@
 
     @include responsive.mq-min(md) {
       padding-right: 20px;
+    }
+  }
+}
+
+// 非表示レシピのページへのリンク。お知らせの文字の位置にそろえる
+.hiddenLink {
+  justify-self: start;
+  margin-left: 20px;
+  color: variables.$color-text-sub;
+  text-decoration: underline;
+
+  @media (hover: hover) {
+    &:hover {
+      opacity: variables.$hover-opacity;
     }
   }
 }
