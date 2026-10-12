@@ -13,6 +13,8 @@ import {
 } from "@/utils/recipeFilter";
 import { IngredientsFiller } from "../../../components/ingredientsFiller/ingredientsFiller";
 import { Pagination } from "../../../components/pagination/pagination";
+import { ManageBanner } from "../../../components/recipeManage/manageBanner";
+import { ManageItem } from "../../../components/recipeManage/manageItem";
 import { HiddenControls } from "../hiddenControls/hiddenControls";
 import styles from "./_styles/_hiddenRecipes.module.scss";
 
@@ -52,7 +54,7 @@ const NoMatch = ({ order, hasQuery }: NoMatchProps) => {
 };
 
 /**
- * 非表示レシピのページの中身。説明・並び順と検索の行・カード（1ページ9件）とページ送り
+ * 非表示レシピのページの中身。説明・並び順と検索の行・カード（1ページ9件）とページ送り。「レシピを整理する」で一覧に戻せる
  * 「作らない」を選んだものと一覧から削除したものは、画面では区別しない
  */
 const HiddenRecipes = async ({ filter }: HiddenRecipesProps) => {
@@ -77,6 +79,7 @@ const HiddenRecipes = async ({ filter }: HiddenRecipesProps) => {
         提案で「作らない」を選んだレシピと、一覧から削除したレシピです。ここにあるレシピは提案されません。
       </p>
       <HiddenControls filter={filter} />
+      <ManageBanner />
       {allRecipes.length === 0 && (
         <p className={styles.message}>非表示レシピはありません。</p>
       )}
@@ -88,7 +91,13 @@ const HiddenRecipes = async ({ filter }: HiddenRecipesProps) => {
           <ul className={styles.list}>
             {pageRecipes.map((recipe) => (
               <li key={recipe.id}>
-                <RecipeCard recipe={recipe} />
+                <ManageItem
+                  recipeId={recipe.id}
+                  title={recipe.title}
+                  layout="card"
+                >
+                  <RecipeCard recipe={recipe} />
+                </ManageItem>
               </li>
             ))}
           </ul>
