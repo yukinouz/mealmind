@@ -22,14 +22,22 @@ interface HiddenRecipesProps {
 
 interface NoMatchProps {
   order: RecipeOrder;
+  hasQuery: boolean;
 }
 
-/** 検索に合うレシピがないときのお知らせ。「検索を解除」は、並び順だけを残した URL へ移る */
-const NoMatch = ({ order }: NoMatchProps) => {
+/**
+ * 検索に合うレシピがないとき（範囲外のページを開いたときも）のお知らせ。リンクは、並び順だけを残した1ページ目へ移る
+ * 検索していないときは、範囲外のページを開いたときなので「1ページ目へ」にする
+ */
+const NoMatch = ({ order, hasQuery }: NoMatchProps) => {
   const query = toRecipeQuery({ ...DEFAULT_FILTER, order });
   return (
     <div className={styles.message}>
-      <p>条件に合うレシピが見つかりませんでした。</p>
+      <p>
+        {hasQuery
+          ? "条件に合うレシピが見つかりませんでした。"
+          : "このページにはレシピがありません。"}
+      </p>
       <Link
         className={styles.clear}
         href={
@@ -37,7 +45,7 @@ const NoMatch = ({ order }: NoMatchProps) => {
         }
         scroll={false}
       >
-        検索を解除
+        {hasQuery ? "検索を解除" : "1ページ目へ"}
       </Link>
     </div>
   );
@@ -73,7 +81,7 @@ const HiddenRecipes = async ({ filter }: HiddenRecipesProps) => {
         <p className={styles.message}>非表示レシピはありません。</p>
       )}
       {allRecipes.length > 0 && pageRecipes.length === 0 && (
-        <NoMatch order={filter.order} />
+        <NoMatch order={filter.order} hasQuery={filter.query !== ""} />
       )}
       {pageRecipes.length > 0 && (
         <>
