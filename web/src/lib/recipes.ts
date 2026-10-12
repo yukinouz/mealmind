@@ -162,7 +162,7 @@ export const recordReject = (recipe: NewRecipe) =>
   });
 
 /**
- * 指定したレシピを、情報を持ったまま excluded.json から recipes.json へ戻す（ADR-0014）
+ * 指定したレシピを、情報を持ったまま excluded.json から recipes.json へ戻す（ADR-0008）
  * 「作らない」で外したものも「作る」レシピとして戻す。追加日（registeredAt）がなければ戻した日時にする
  * recipes.json に同じ URL があれば、そちらを残して excluded.json から消すだけにする。見つからない id は無視する
  */
