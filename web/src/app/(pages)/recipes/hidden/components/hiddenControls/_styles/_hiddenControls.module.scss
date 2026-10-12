@@ -1,0 +1,26 @@
+@use "responsive";
+@use "variables";
+
+// 並び順と検索の行。並びはレシピ一覧の ♡のみ・並び順などの行と同じ
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: variables.space(12);
+  margin-top: variables.space(28);
+}
+
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  @include responsive.mq-max(md) {
+    gap: variables.space(8);
+  }
+
+  @include responsive.mq-min(md) {
+    gap: variables.space(12);
+  }
+}

@@ -25,6 +25,16 @@ export type Recipe = {
   registeredAt: string;
 };
 
+/** 外した理由。rejected は提案で「作らない」を選んだもの、hidden はレシピ一覧から削除したもの */
+export type ExcludedReason = "rejected" | "hidden";
+
+/** data/personal/excluded.json の1件の形（非表示レシピのページで使う項目だけ）。「作らない」で外したものは registeredAt を持たない */
+export interface HiddenRecipe extends Omit<Recipe, "registeredAt"> {
+  registeredAt?: string;
+  excludedAt: string;
+  reason: ExcludedReason;
+}
+
 /** 画面から記録するレシピ。材料とメイン食材は、あとでレシピを見せるページを開いたときに埋める（ADR-0010） */
 export interface NewRecipe {
   id: string;
@@ -70,6 +80,12 @@ interface ExcludedFile {
 export const readRecipes = async (): Promise<Recipe[]> => {
   const data = await readRecipesFile();
   return data.recipes as Recipe[];
+};
+
+/** 提案されないレシピ（excluded.json）をすべて読む。ファイルがまだないときは空の一覧を返す */
+export const readHiddenRecipes = async (): Promise<HiddenRecipe[]> => {
+  const data = await readExcludedFile();
+  return data.excluded as unknown as HiddenRecipe[];
 };
 
 /** 指定したレシピの isFavorite を書き換える。見つからないときは何もしない */
