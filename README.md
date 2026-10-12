@@ -113,6 +113,8 @@ scripts/pick-recipe.sh 豚バラ --count 5           # YouTube だけから、�
 
 `sources.json` と `preferences.json` には、記入例の `*.example.json` があります（記録する）。`sources.json` 以外の個人データのファイルは、なければ空として扱われます。
 
+`mealmind-data` は、`npm run dev`（`web/`）の直前に `scripts/sync-personal-data.sh` が GitHub と同期します（変更をコミット → 取り込み → 送信）。失敗しても警告だけで、Web は起動します。
+
 ### 書き方の決まり
 
 データを長く使い続けられるよう、次の形にそろえます。
