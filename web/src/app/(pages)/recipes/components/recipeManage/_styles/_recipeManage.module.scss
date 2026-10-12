@@ -131,6 +131,7 @@
   @media (hover: hover) {
     &:hover {
       opacity: variables.$hover-opacity;
+      text-decoration: underline;
     }
   }
 }
