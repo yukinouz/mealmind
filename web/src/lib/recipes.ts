@@ -270,7 +270,7 @@ export const fillIngredients = (
   });
 
 /**
- * メイン食材か料理の系統がまだない YouTube のレシピか。クラシルは説明文がないので埋められない
+ * メイン食材か料理の系統がまだない YouTube のレシピか
  * 料理の系統は、正しくない値が入っているときも埋め直す
  */
 const isUnfilled = (item: JsonRecord): boolean =>

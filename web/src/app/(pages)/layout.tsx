@@ -14,7 +14,7 @@ const notoSansJP = Noto_Sans_JP({
 
 // ページで description を決めなかったときは、この説明文が引き継がれる
 const DEFAULT_DESCRIPTION =
-  "毎週の献立づくりに、疲れていませんか？MealMind は、お気に入りの料理動画やレシピサイトからレシピを提案し、献立を決める手間を軽くします。";
+  "毎週の献立づくりに、疲れていませんか？MealMind は、お気に入りの料理動画からレシピを提案し、献立を決める手間を軽くします。";
 
 export const metadata: Metadata = {
   title: {

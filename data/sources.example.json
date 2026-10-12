@@ -8,16 +8,7 @@
       "shortName": "リュウジ",
       "handle": "@ryuji825",
       "channelId": "UCW01sMEVYQdhcvkrhbxdBpw",
-      "weight": 90,
-      "isEnabled": true
-    },
-    {
-      "id": "kurashiru",
-      "type": "kurashiru",
-      "name": "クラシル",
-      "shortName": "クラシル",
-      "url": "https://www.kurashiru.com",
-      "weight": 10,
+      "weight": 100,
       "isEnabled": true
     }
   ]
