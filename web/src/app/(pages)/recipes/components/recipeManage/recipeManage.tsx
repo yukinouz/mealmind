@@ -42,8 +42,8 @@ const MODES: Record<ManageMode, ManageModeConfig> = {
     texts: {
       pending: "戻す予定",
       action: "一覧に戻す",
-      toPending: (title) => `「${title}」を一覧に戻す予定にする`,
-      cancel: (title) => `「${title}」を一覧に戻すのを取り消す`,
+      toPending: (title) => `「${title}」をレシピ一覧に戻す予定にする`,
+      cancel: (title) => `「${title}」をレシピ一覧に戻すのを取り消す`,
       banner: (count) =>
         `整理中：一覧に戻す予定 ${count}件。「完了」を押すと確定し、レシピ一覧に移ります`,
       error: "一覧に戻せませんでした。もう一度「完了」を押してください。",
@@ -245,7 +245,7 @@ const RecipeManageProvider = ({
     `${texts.notApplied(pendingIds.length)}このまま移ると、変更は取り消されます。`,
   );
 
-  /** 整理を終えて、削除予定とお知らせを消す */
+  /** 整理を終えて、予定とお知らせを消す */
   const reset = () => {
     setIsManaging(false);
     setPendingIds([]);
