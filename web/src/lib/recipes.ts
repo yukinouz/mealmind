@@ -162,6 +162,42 @@ export const recordReject = (recipe: NewRecipe) =>
   });
 
 /**
+ * 指定したレシピを、情報を持ったまま excluded.json から recipes.json へ戻す（ADR-0014）
+ * 「作らない」で外したものも「作る」レシピとして戻す。追加日（registeredAt）がなければ戻した日時にする
+ * recipes.json に同じ URL があれば、そちらを残して excluded.json から消すだけにする。見つからない id は無視する
+ */
+export const restoreRecipes = (ids: string[]) =>
+  inOrder(async () => {
+    const idSet = new Set(ids);
+    const excludedData = await readExcludedFile();
+    const isRestored = (item: JsonRecord) => idSet.has(item.id as string);
+    const targets = excludedData.excluded.filter(isRestored);
+    if (targets.length === 0) return;
+
+    const data = await readRecipesFile();
+    const recipeUrls = new Set(data.recipes.map((item) => item.url));
+    const registeredAt = toLocalDateTime(new Date());
+    const moved: JsonRecord[] = targets
+      .filter((item) => !recipeUrls.has(item.url))
+      .map(({ excludedAt: _excludedAt, reason: _reason, ...item }) => ({
+        registeredAt,
+        chosenDates: [],
+        isFavorite: false,
+        ...item,
+      }));
+
+    // 途中で止まっても消えないよう、先に移し先へ書いてから元を消す
+    await writeJsonSafely(RECIPES_PATH, {
+      ...data,
+      recipes: [...data.recipes, ...moved],
+    });
+    await writeJsonSafely(EXCLUDED_PATH, {
+      ...excludedData,
+      excluded: excludedData.excluded.filter((item) => !isRestored(item)),
+    });
+  });
+
+/**
  * 指定したレシピを、情報を持ったまま recipes.json から excluded.json へ移す（ADR-0008）
  * excluded.json に同じ URL があれば、移すほうで置き換える。見つからない id は無視する
  */
