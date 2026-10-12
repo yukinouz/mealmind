@@ -4,13 +4,14 @@ import { type Cuisine, isCuisine } from "@/utils/cuisine";
 import { toLocalDate, toLocalDateTime } from "@/utils/localDate";
 
 // npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
-const DATA_DIR = path.resolve(process.cwd(), "..", "data");
+// 個人データは mealmind-data リポジトリにあり、data/personal はそこへのリンク
+const DATA_DIR = path.resolve(process.cwd(), "..", "data", "personal");
 const RECIPES_PATH = path.join(DATA_DIR, "recipes.json");
 const EXCLUDED_PATH = path.join(DATA_DIR, "excluded.json");
 
 export type Meal = "lunch" | "dinner";
 
-// data/recipes.json の1件の形（一覧で使う項目だけ）
+// data/personal/recipes.json の1件の形（一覧で使う項目だけ）
 export type Recipe = {
   id: string;
   title: string;

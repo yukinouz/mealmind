@@ -2,7 +2,13 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 // npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
-const SOURCES_PATH = path.resolve(process.cwd(), "..", "data", "sources.json");
+const SOURCES_PATH = path.resolve(
+  process.cwd(),
+  "..",
+  "data",
+  "personal",
+  "sources.json",
+);
 
 /** 絞り込みのボタンに出すチャンネル */
 export interface Channel {
@@ -10,7 +16,7 @@ export interface Channel {
   label: string;
 }
 
-// data/sources.json の1件の形（ここで使う項目だけ）
+// data/personal/sources.json の1件の形（ここで使う項目だけ）
 interface SourceEntry {
   id: string;
   name: string;
