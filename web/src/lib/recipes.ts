@@ -177,8 +177,13 @@ export const restoreRecipes = (ids: string[]) =>
     const data = await readRecipesFile();
     const recipeUrls = new Set(data.recipes.map((item) => item.url));
     const registeredAt = toLocalDateTime(new Date());
+    // excluded.json の中に同じ URL が重なっていても、1件だけ移す
     const moved: JsonRecord[] = targets
-      .filter((item) => !recipeUrls.has(item.url))
+      .filter((item) => {
+        if (recipeUrls.has(item.url)) return false;
+        recipeUrls.add(item.url);
+        return true;
+      })
       .map(({ excludedAt: _excludedAt, reason: _reason, ...item }) => ({
         registeredAt,
         chosenDates: [],
