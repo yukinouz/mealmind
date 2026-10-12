@@ -59,6 +59,8 @@ interface FavoriteToggleProps {
 
 interface OrderToggleProps {
   order: RecipeOrder;
+  // 何の日付で並べるか（例：追加日）。ボタンの説明に使う
+  dateLabel: string;
   onChange: (order: RecipeOrder) => void;
 }
 
@@ -130,12 +132,16 @@ const FavoriteToggle = ({ isFavoriteOnly, onChange }: FavoriteToggleProps) => {
   );
 };
 
-/** 追加日の新しい順・古い順の切り替え。いまの向きの矢印を濃く、もう片方を薄く出す */
-const OrderToggle = ({ order, onChange }: OrderToggleProps) => {
+/** 日付の新しい順・古い順の切り替え。いまの向きの矢印を濃く、もう片方を薄く出す */
+export const OrderToggle = ({
+  order,
+  dateLabel,
+  onChange,
+}: OrderToggleProps) => {
   const label =
     order === "newest"
-      ? "追加日が新しい順（押すと古い順）"
-      : "追加日が古い順（押すと新しい順）";
+      ? `${dateLabel}が新しい順（押すと古い順）`
+      : `${dateLabel}が古い順（押すと新しい順）`;
   return (
     <button
       className={styles.order}
@@ -185,7 +191,7 @@ const ViewToggle = ({ view, onChange }: ViewToggleProps) => {
  * 料理名・食材・チャンネル名の検索欄。打った言葉は少し待ってから onSearch で渡す
  * URL の言葉がほかの操作（条件をすべて解除など）で変わったときは、欄の中身もそれに合わせる
  */
-const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
+export const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
   const [text, setText] = useState(query);
   // 日本語の変換中は、確定するまで検索しない
   const [isComposing, setIsComposing] = useState(false);
@@ -243,10 +249,10 @@ const SearchBox = ({ query, onSearch }: SearchBoxProps) => {
 };
 
 /**
- * レシピ一覧の絞り込み欄と、その下の ♡のみ・並び順・表示形式・レシピを整理する・検索の行。条件は URL に持たせ、一覧の絞り込みと並べ替えはサーバーで行う
- * 押したらすぐ選択の見た目を変え、URL の書き換えはその後に行う
+ * 条件を URL に持たせて書き換える。押したらすぐ選択の見た目を変え、URL の書き換えはその後に行う
+ * changeCondition は出るレシピが変わる変更に使い、1ページ目に戻す
  */
-export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
+export const useFilterUrl = (filter: Filter) => {
   const router = useRouter();
   const pathname = usePathname();
   const [shownFilter, setShownFilter] = useOptimistic(filter);
@@ -276,6 +282,15 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
 
     changeFilter({ ...next, page: 1 });
   };
+
+  return { shownFilter, changeFilter, changeCondition };
+};
+
+/**
+ * レシピ一覧の絞り込み欄と、その下の ♡のみ・並び順・表示形式・レシピを整理する・検索の行。条件は URL に持たせ、一覧の絞り込みと並べ替えはサーバーで行う
+ */
+export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
+  const { shownFilter, changeFilter, changeCondition } = useFilterUrl(filter);
 
   const channelOptions = channels.map((channel) => ({
     value: channel.id,
@@ -328,6 +343,7 @@ export const RecipeFilter = ({ filter, channels }: RecipeFilterProps) => {
           />
           <OrderToggle
             order={shownFilter.order}
+            dateLabel="追加日"
             onChange={(order) => changeCondition({ ...shownFilter, order })}
           />
           <ViewToggle
