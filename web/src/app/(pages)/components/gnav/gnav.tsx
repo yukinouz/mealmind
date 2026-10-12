@@ -14,6 +14,10 @@ interface NavItem {
   label: string;
 }
 
+/** いまのページがその項目か。下の階層（/recipes/hidden など）にいるときも、親の項目を選択中にする */
+const isCurrent = (pathname: string, href: string): boolean =>
+  pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+
 const Gnav = () => {
   const pathname = usePathname();
 
@@ -25,7 +29,7 @@ const Gnav = () => {
             <Link
               className={styles.link}
               href={href}
-              aria-current={pathname === href ? "page" : undefined}
+              aria-current={isCurrent(pathname, href) ? "page" : undefined}
             >
               {label}
             </Link>
