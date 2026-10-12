@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import type { RecipeCardLayout } from "@/app/(pages)/components/recipeCard/recipeCard";
 import { truncate } from "@/utils/truncate";
 import styles from "./_styles/_recipeManage.module.scss";
-import { useRecipeManage } from "./recipeManage";
+import { type ManageMode, useRecipeManage } from "./recipeManage";
 
 interface ManageItemProps {
   recipeId: string;
@@ -15,12 +15,18 @@ interface ManageItemProps {
   children: ReactNode;
 }
 
+const ICONS: Record<ManageMode, string> = {
+  hide: "/images/icon/icon-delete.svg",
+  restore: "/images/icon/icon-restore.svg",
+};
+
 /**
- * 一覧の1件。整理中は、カードの下（リストでは行の右）に「削除」か「取り消す」を出す
- * 削除予定のレシピは、カードを薄くして見分けられるようにする
+ * 一覧の1件。整理中は、カードの下（リストでは行の右）に「削除」か「一覧に戻す」と、予定にしたら「取り消す」を出す
+ * 予定にしたレシピは、カードを薄くして見分けられるようにする
  */
 const ManageItem = ({ recipeId, title, layout, children }: ManageItemProps) => {
-  const { isManaging, pendingIds, isSaving, togglePending } = useRecipeManage();
+  const { mode, texts, isManaging, pendingIds, isSaving, togglePending } =
+    useRecipeManage();
   const isPending = pendingIds.includes(recipeId);
   const shortTitle = truncate(title);
 
@@ -30,17 +36,17 @@ const ManageItem = ({ recipeId, title, layout, children }: ManageItemProps) => {
         {children}
       </div>
       {isManaging && (
-        <div className={styles.actions}>
-          {isPending && <span className={styles.pendingLabel}>削除予定</span>}
-          {/* 押してもフォーカスが外れないよう、削除と取り消しは同じボタンの中身だけを替える */}
+        <div className={styles.actions} data-mode={mode}>
+          {isPending && (
+            <span className={styles.pendingLabel}>{texts.pending}</span>
+          )}
+          {/* 押してもフォーカスが外れないよう、予定にするボタンと取り消すボタンは同じボタンの中身だけを替える */}
           <button
-            className={isPending ? styles.cancel : styles.delete}
+            className={isPending ? styles.cancel : styles[mode]}
             type="button"
             disabled={isSaving}
             aria-label={
-              isPending
-                ? `「${shortTitle}」の削除を取り消す`
-                : `「${shortTitle}」を削除予定にする`
+              isPending ? texts.cancel(shortTitle) : texts.toPending(shortTitle)
             }
             onClick={() => togglePending(recipeId)}
           >
@@ -48,13 +54,8 @@ const ManageItem = ({ recipeId, title, layout, children }: ManageItemProps) => {
               "取り消す"
             ) : (
               <>
-                <Image
-                  src="/images/icon/icon-delete.svg"
-                  alt=""
-                  width={18}
-                  height={18}
-                />
-                削除
+                <Image src={ICONS[mode]} alt="" width={18} height={18} />
+                {texts.action}
               </>
             )}
           </button>

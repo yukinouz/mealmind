@@ -11,18 +11,77 @@ import {
   useTransition,
 } from "react";
 import { hideRecipesAction } from "@/actions/hide";
+import { restoreRecipesAction } from "@/actions/restore";
+import { HIDDEN_RECIPES_PATH } from "@/utils/hiddenFilter";
 import { toggleValue } from "@/utils/recipeFilter";
 import styles from "./_styles/_recipeManage.module.scss";
 
-const RECIPES_PATH = "/recipes";
+/**
+ * 整理の種類ごとの、ページ・保存の処理・文言
+ * hide はレシピ一覧で削除する（excluded.json へ移す）、restore は非表示レシピのページで一覧に戻す（recipes.json へ移す）
+ */
+const MODES: Record<ManageMode, ManageModeConfig> = {
+  hide: {
+    path: "/recipes",
+    save: hideRecipesAction,
+    texts: {
+      pending: "削除予定",
+      action: "削除",
+      toPending: (title) => `「${title}」を削除予定にする`,
+      cancel: (title) => `「${title}」の削除を取り消す`,
+      banner: (count) =>
+        `整理中：削除予定 ${count}件。「完了」を押すと確定し、削除したレシピは今後提案されなくなります`,
+      error: "削除できませんでした。もう一度「完了」を押してください。",
+      notApplied: (count) =>
+        `削除予定の ${count}件は、まだ削除されていません。`,
+    },
+  },
+  restore: {
+    path: HIDDEN_RECIPES_PATH,
+    save: restoreRecipesAction,
+    texts: {
+      pending: "戻す予定",
+      action: "一覧に戻す",
+      toPending: (title) => `「${title}」を一覧に戻す予定にする`,
+      cancel: (title) => `「${title}」を一覧に戻すのを取り消す`,
+      banner: (count) =>
+        `整理中：一覧に戻す予定 ${count}件。「完了」を押すと確定し、レシピ一覧に移ります`,
+      error: "一覧に戻せませんでした。もう一度「完了」を押してください。",
+      notApplied: (count) =>
+        `一覧に戻す予定の ${count}件は、まだ戻っていません。`,
+    },
+  },
+};
 
-// 削除予定を残したまま、ヘッダーのリンクなどで別のページへ移ろうとしたときに出す確認
-const LEAVE_MESSAGE =
-  "削除予定のレシピは、まだ削除されていません。このまま移ると、変更は取り消されます。";
+/** 整理の種類。hide はレシピ一覧で削除する、restore は非表示レシピのページで一覧に戻す */
+export type ManageMode = "hide" | "restore";
+
+/** 整理の画面に出す文言。title はレシピ名（短くしたもの）、count は予定の件数 */
+interface ManageTexts {
+  // 予定にしたレシピに付ける札
+  pending: string;
+  // 予定にするボタンの文字
+  action: string;
+  toPending: (title: string) => string;
+  cancel: (title: string) => string;
+  banner: (count: number) => string;
+  error: string;
+  // 予定を残したまま整理をやめる・ページを離れるときの説明
+  notApplied: (count: number) => string;
+}
+
+interface ManageModeConfig {
+  // 整理するページのパス。このページの中の移動（ページ送りなど）では予定を残す
+  path: string;
+  save: (ids: string[]) => Promise<{ type: "saved" } | { type: "error" }>;
+  texts: ManageTexts;
+}
 
 interface RecipeManage {
+  mode: ManageMode;
+  texts: ManageTexts;
   isManaging: boolean;
-  // 削除予定のレシピの id。「完了」を押すまで保存しない
+  // 予定にしたレシピの id。「完了」を押すまで保存しない
   pendingIds: string[];
   isSaving: boolean;
   hasError: boolean;
@@ -32,22 +91,23 @@ interface RecipeManage {
 }
 
 interface RecipeManageProviderProps {
+  mode: ManageMode;
   children: ReactNode;
 }
 
 interface LeaveDialogProps {
   isOpen: boolean;
-  pendingCount: number;
+  description: string;
   onDiscard: () => void;
   onKeep: () => void;
 }
 
 const RecipeManageContext = createContext<RecipeManage | null>(null);
 
-/** 削除予定を残したまま「レシピを整理する」を押したときの確認。Esc は「整理を続ける」と同じ */
+/** 予定を残したまま「レシピを整理する」を押したときの確認。Esc は「整理を続ける」と同じ */
 const LeaveDialog = ({
   isOpen,
-  pendingCount,
+  description,
   onDiscard,
   onKeep,
 }: LeaveDialogProps) => {
@@ -79,8 +139,7 @@ const LeaveDialog = ({
         変更が反映されていません
       </h2>
       <p className={styles.dialogText} id="leave-desc">
-        削除予定の {pendingCount}
-        件は、まだ削除されていません。このまま戻ると、変更は取り消されます。
+        {description}このまま戻ると、変更は取り消されます。
       </p>
       <div className={styles.dialogActions}>
         <button className={styles.discard} type="button" onClick={onDiscard}>
@@ -101,8 +160,12 @@ const LeaveDialog = ({
   );
 };
 
-/** 削除予定を残したまま、タブを閉じる・再読み込みする・別のページへ移るときに確認を出す */
-const useLeaveGuard = (hasPending: boolean) => {
+/** 予定を残したまま、タブを閉じる・再読み込みする・別のページへ移るときに確認を出す */
+const useLeaveGuard = (
+  hasPending: boolean,
+  path: string,
+  leaveMessage: string,
+) => {
   useEffect(() => {
     if (!hasPending) return;
 
@@ -125,12 +188,10 @@ const useLeaveGuard = (hasPending: boolean) => {
         return;
       }
 
-      // レシピ一覧の中の移動（ページ送りなど）は、削除予定を保ったまま続けられる
+      // 整理しているページの中の移動（ページ送りなど）は、予定を保ったまま続けられる
       const url = new URL(link.href);
-      if (url.origin !== location.origin || url.pathname === RECIPES_PATH) {
-        return;
-      }
-      if (window.confirm(LEAVE_MESSAGE)) return;
+      if (url.origin !== location.origin || url.pathname === path) return;
+      if (window.confirm(leaveMessage)) return;
 
       event.preventDefault();
       event.stopPropagation();
@@ -142,7 +203,7 @@ const useLeaveGuard = (hasPending: boolean) => {
       window.removeEventListener("beforeunload", onBeforeUnload);
       document.removeEventListener("click", onClick, { capture: true });
     };
-  }, [hasPending]);
+  }, [hasPending, path, leaveMessage]);
 };
 
 /** いまの URL から、ページの指定だけを外した URL。絞り込みなどの条件は残す */
@@ -163,18 +224,26 @@ const useRecipeManage = (): RecipeManage => {
 };
 
 /**
- * 「レシピを整理する」の状態を持つ。レシピ一覧のレイアウトに置くので、ページ送りや絞り込みで URL が変わっても削除予定が残る
- * 削除予定は「完了」を押したときにまとめて保存する
+ * 「レシピを整理する」の状態を持つ。ページのレイアウトに置くので、ページ送りや絞り込みで URL が変わっても予定が残る
+ * 予定は「完了」を押したときにまとめて保存する
  */
-const RecipeManageProvider = ({ children }: RecipeManageProviderProps) => {
+const RecipeManageProvider = ({
+  mode,
+  children,
+}: RecipeManageProviderProps) => {
   const [isManaging, setIsManaging] = useState(false);
   const [pendingIds, setPendingIds] = useState<string[]>([]);
   const [isConfirming, setIsConfirming] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isSaving, startSaving] = useTransition();
   const router = useRouter();
+  const { path, save, texts } = MODES[mode];
 
-  useLeaveGuard(pendingIds.length > 0);
+  useLeaveGuard(
+    pendingIds.length > 0,
+    path,
+    `${texts.notApplied(pendingIds.length)}このまま移ると、変更は取り消されます。`,
+  );
 
   /** 整理を終えて、削除予定とお知らせを消す */
   const reset = () => {
@@ -184,7 +253,7 @@ const RecipeManageProvider = ({ children }: RecipeManageProviderProps) => {
     setHasError(false);
   };
 
-  /** 整理を始める・やめる。削除予定が残っていれば、やめる前に確認する */
+  /** 整理を始める・やめる。予定が残っていれば、やめる前に確認する */
   const toggleManage = () => {
     if (!isManaging) return setIsManaging(true);
     if (pendingIds.length > 0) return setIsConfirming(true);
@@ -192,7 +261,7 @@ const RecipeManageProvider = ({ children }: RecipeManageProviderProps) => {
   };
 
   /**
-   * 削除予定を確定する。保存中はボタンを押せなくする。失敗したときは削除予定を残し、もう一度押せるようにする
+   * 予定を確定する。保存中はボタンを押せなくする。失敗したときは予定を残し、もう一度押せるようにする
    * 確定したら1ページ目へ移る。レシピが減って、いまのページがなくなることがあるため
    */
   const finish = () => {
@@ -200,16 +269,18 @@ const RecipeManageProvider = ({ children }: RecipeManageProviderProps) => {
 
     setHasError(false);
     startSaving(async () => {
-      const result = await hideRecipesAction(pendingIds);
+      const result = await save(pendingIds);
       if (result.type === "error") return setHasError(true);
       reset();
-      // 削除のあとに「戻る」で消えたページへ戻らないよう、履歴は増やさない
+      // 確定のあとに「戻る」で消えたページへ戻らないよう、履歴は増やさない
       router.replace(toFirstPageUrl(), { scroll: false });
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   };
 
   const manage: RecipeManage = {
+    mode,
+    texts,
     isManaging,
     pendingIds,
     isSaving,
@@ -224,7 +295,7 @@ const RecipeManageProvider = ({ children }: RecipeManageProviderProps) => {
       {children}
       <LeaveDialog
         isOpen={isConfirming}
-        pendingCount={pendingIds.length}
+        description={texts.notApplied(pendingIds.length)}
         onDiscard={reset}
         onKeep={() => setIsConfirming(false)}
       />
