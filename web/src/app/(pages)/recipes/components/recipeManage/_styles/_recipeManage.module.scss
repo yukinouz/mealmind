@@ -121,6 +121,20 @@
   }
 }
 
+// 非表示レシピのページへのリンク。お知らせの文字の位置にそろえる
+.hiddenLink {
+  justify-self: start;
+  margin-left: 20px;
+  color: variables.$color-text-sub;
+  text-decoration: underline;
+
+  @media (hover: hover) {
+    &:hover {
+      opacity: variables.$hover-opacity;
+    }
+  }
+}
+
 .content[data-pending="true"] {
   opacity: 0.45;
 }
@@ -139,9 +153,16 @@
   color: variables.$color-pink900;
   font-size: 12px;
   font-weight: 700;
+
+  // 一覧に戻す予定は、削除と見分けられるようメインカラーの淡い色にする
+  [data-mode="restore"] > & {
+    background-color: variables.$color-orange100;
+    color: variables.$color-orange800;
+  }
 }
 
-.delete,
+.hide,
+.restore,
 .cancel {
   width: auto;
 
@@ -168,16 +189,19 @@
   }
 }
 
-.delete {
+.hide {
   border-color: variables.$color-pink200;
   color: variables.$color-pink900;
+}
 
+.hide,
+.restore {
   > img {
     width: auto;
   }
 }
 
-// 削除予定を残したまま整理をやめようとしたときの確認
+// 予定を残したまま整理をやめようとしたときの確認
 .dialog {
   width: calc(100% - 40px);
   max-width: 420px;

@@ -173,14 +173,21 @@ export const filterRecipes = <
 /** 日時を数値にする。読めない日時は 0（いちばん古い）として扱い、並び順が定まるようにする */
 const toTime = (dateTime: string): number => Date.parse(dateTime) || 0;
 
-/** 追加した日時（registeredAt）で並べた、新しい配列を返す */
+/** dateTimeOf で取り出した日時で並べた、新しい配列を返す */
 // 時差の表記が違っても正しく比べられるよう、日時に変換してから比べる
+export const sortByDateTime = <T>(
+  items: T[],
+  order: RecipeOrder,
+  dateTimeOf: (item: T) => string,
+): T[] => {
+  const direction = order === "newest" ? -1 : 1;
+  return items.toSorted(
+    (a, b) => direction * (toTime(dateTimeOf(a)) - toTime(dateTimeOf(b))),
+  );
+};
+
+/** 追加した日時（registeredAt）で並べた、新しい配列を返す */
 export const sortRecipes = <T extends Pick<Recipe, "registeredAt">>(
   recipes: T[],
   order: RecipeOrder,
-): T[] => {
-  const direction = order === "newest" ? -1 : 1;
-  return recipes.toSorted(
-    (a, b) => direction * (toTime(a.registeredAt) - toTime(b.registeredAt)),
-  );
-};
+): T[] => sortByDateTime(recipes, order, (recipe) => recipe.registeredAt);

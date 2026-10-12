@@ -14,6 +14,19 @@ interface NavItem {
   label: string;
 }
 
+/**
+ * 項目の aria-current。その項目のページなら page、下の階層（/recipes/hidden など）にいるなら true（親の項目を選択中にする）
+ * 下の階層で page にすると、読み上げで別のページにいるように伝わってしまう
+ */
+const currentOf = (
+  pathname: string,
+  href: string,
+): "page" | true | undefined => {
+  if (pathname === href) return "page";
+  if (href !== "/" && pathname.startsWith(`${href}/`)) return true;
+  return undefined;
+};
+
 const Gnav = () => {
   const pathname = usePathname();
 
@@ -25,7 +38,7 @@ const Gnav = () => {
             <Link
               className={styles.link}
               href={href}
-              aria-current={pathname === href ? "page" : undefined}
+              aria-current={currentOf(pathname, href)}
             >
               {label}
             </Link>

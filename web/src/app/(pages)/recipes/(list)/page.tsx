@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import { Inner } from "@/app/(pages)/components/inner/inner";
+import { PageHeader } from "@/app/(pages)/components/pageHeader/pageHeader";
+import { Section } from "@/app/(pages)/components/section/section";
 import { parseRecipeFilter, type SearchParams } from "@/utils/recipeFilter";
-import { Inner } from "../components/inner/inner";
-import { PageHeader } from "../components/pageHeader/pageHeader";
-import { Section } from "../components/section/section";
-import { Recipes } from "./components/recipes/recipes";
+import { Recipes } from "../components/recipes/recipes";
 
 // description は決めないので、layout の既定の説明文が使われる
 export const metadata: Metadata = {

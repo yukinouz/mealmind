@@ -25,6 +25,16 @@ export type Recipe = {
   registeredAt: string;
 };
 
+/** 外した理由。rejected は提案で「作らない」を選んだもの、hidden はレシピ一覧から削除したもの */
+export type ExcludedReason = "rejected" | "hidden";
+
+/** data/personal/excluded.json の1件の形（非表示レシピのページで使う項目だけ）。「作らない」で外したものは registeredAt を持たない */
+export interface HiddenRecipe extends Omit<Recipe, "registeredAt"> {
+  registeredAt?: string;
+  excludedAt: string;
+  reason: ExcludedReason;
+}
+
 /** 画面から記録するレシピ。材料とメイン食材は、あとでレシピを見せるページを開いたときに埋める（ADR-0010） */
 export interface NewRecipe {
   id: string;
@@ -70,6 +80,12 @@ interface ExcludedFile {
 export const readRecipes = async (): Promise<Recipe[]> => {
   const data = await readRecipesFile();
   return data.recipes as Recipe[];
+};
+
+/** 提案されないレシピ（excluded.json）をすべて読む。ファイルがまだないときは空の一覧を返す */
+export const readHiddenRecipes = async (): Promise<HiddenRecipe[]> => {
+  const data = await readExcludedFile();
+  return data.excluded as unknown as HiddenRecipe[];
 };
 
 /** 指定したレシピの isFavorite を書き換える。見つからないときは何もしない */
@@ -142,6 +158,47 @@ export const recordReject = (recipe: NewRecipe) =>
     await writeJsonSafely(EXCLUDED_PATH, {
       ...data,
       excluded: [...data.excluded, added],
+    });
+  });
+
+/**
+ * 指定したレシピを、情報を持ったまま excluded.json から recipes.json へ戻す（ADR-0008）
+ * 「作らない」で外したものも「作る」レシピとして戻す。追加日（registeredAt）がなければ戻した日時にする
+ * recipes.json に同じ URL があれば、そちらを残して excluded.json から消すだけにする。見つからない id は無視する
+ */
+export const restoreRecipes = (ids: string[]) =>
+  inOrder(async () => {
+    const idSet = new Set(ids);
+    const excludedData = await readExcludedFile();
+    const isRestored = (item: JsonRecord) => idSet.has(item.id as string);
+    const targets = excludedData.excluded.filter(isRestored);
+    if (targets.length === 0) return;
+
+    const data = await readRecipesFile();
+    const recipeUrls = new Set(data.recipes.map((item) => item.url));
+    const registeredAt = toLocalDateTime(new Date());
+    // excluded.json の中に同じ URL が重なっていても、1件だけ移す
+    const moved: JsonRecord[] = targets
+      .filter((item) => {
+        if (recipeUrls.has(item.url)) return false;
+        recipeUrls.add(item.url);
+        return true;
+      })
+      .map(({ excludedAt: _excludedAt, reason: _reason, ...item }) => ({
+        registeredAt,
+        chosenDates: [],
+        isFavorite: false,
+        ...item,
+      }));
+
+    // 途中で止まっても消えないよう、先に移し先へ書いてから元を消す
+    await writeJsonSafely(RECIPES_PATH, {
+      ...data,
+      recipes: [...data.recipes, ...moved],
+    });
+    await writeJsonSafely(EXCLUDED_PATH, {
+      ...excludedData,
+      excluded: excludedData.excluded.filter((item) => !isRestored(item)),
     });
   });
 

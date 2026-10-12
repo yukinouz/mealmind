@@ -1,0 +1,50 @@
+@use "responsive";
+@use "variables";
+
+// 一覧の並びは、レシピ一覧のカード表示と同じ
+.list {
+  display: grid;
+  margin-top: variables.space(48);
+
+  @include responsive.mq-max(md) {
+    row-gap: 32px;
+  }
+
+  @include responsive.mq-min(md) {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px 32px;
+  }
+}
+
+// 0件のときや、検索に合うレシピがないときのお知らせ
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: variables.space(16);
+  margin-top: variables.space(48);
+  padding: variables.space(40) variables.space(20);
+  border-radius: variables.$radius16;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+  text-align: center;
+}
+
+.clear {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding-inline: 22px;
+  border: 1px solid variables.$color-border;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+  font-size: 14px;
+  font-weight: 700;
+
+  @media (hover: hover) {
+    &:hover {
+      opacity: variables.$hover-opacity;
+    }
+  }
+}
