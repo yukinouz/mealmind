@@ -5,9 +5,9 @@ import { HIDDEN_RECIPES_PATH } from "@/utils/hiddenFilter";
 import styles from "./_styles/_recipeManage.module.scss";
 import { useRecipeManage } from "./recipeManage";
 
-/** 整理中だけ出すお知らせ。削除予定の件数と、確定する「完了」のボタンと、非表示レシピのページへのリンク */
+/** 整理中だけ出すお知らせ。予定の件数と、確定する「完了」のボタン。レシピ一覧では非表示レシピのページへのリンクも出す */
 const ManageBanner = () => {
-  const { isManaging, pendingIds, isSaving, hasError, finish } =
+  const { mode, texts, isManaging, pendingIds, isSaving, hasError, finish } =
     useRecipeManage();
   if (!isManaging) return null;
 
@@ -15,8 +15,7 @@ const ManageBanner = () => {
     <div className={styles.bannerArea}>
       <div className={styles.banner}>
         <p className={styles.bannerText} aria-live="polite">
-          整理中：削除予定 {pendingIds.length}
-          件。「完了」を押すと確定し、削除したレシピは今後提案されなくなります
+          {texts.banner(pendingIds.length)}
         </p>
         <button
           className={styles.finish}
@@ -29,12 +28,14 @@ const ManageBanner = () => {
       </div>
       {hasError && (
         <p className={styles.error} role="alert">
-          削除できませんでした。もう一度「完了」を押してください。
+          {texts.error}
         </p>
       )}
-      <Link className={styles.hiddenLink} href={HIDDEN_RECIPES_PATH}>
-        非表示中のレシピ
-      </Link>
+      {mode === "hide" && (
+        <Link className={styles.hiddenLink} href={HIDDEN_RECIPES_PATH}>
+          非表示中のレシピ
+        </Link>
+      )}
     </div>
   );
 };
