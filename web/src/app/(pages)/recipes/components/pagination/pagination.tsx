@@ -7,19 +7,25 @@ import { PageLink } from "./pageLink";
 interface PaginationProps {
   filter: RecipeFilter;
   totalPages: number;
+  // ページ送りするページのパス。渡さないときはレシピ一覧
+  basePath?: string;
 }
 
 /** そのページの URL。絞り込みなどの条件はそのまま残す */
-const toHref = (filter: RecipeFilter, page: number): string => {
+const toHref = (basePath: string, filter: RecipeFilter, page: number) => {
   const query = toRecipeQuery({ ...filter, page });
-  return query === "" ? "/recipes" : `/recipes?${query}`;
+  return query === "" ? basePath : `${basePath}?${query}`;
 };
 
 /**
  * レシピ一覧のページ送り。1ページしかなければ出さない
  * 最初のページでは「前へ」、最後のページでは「次へ」を出さない
  */
-const Pagination = ({ filter, totalPages }: PaginationProps) => {
+const Pagination = ({
+  filter,
+  totalPages,
+  basePath = "/recipes",
+}: PaginationProps) => {
   if (totalPages <= 1) return null;
 
   const current = filter.page;
@@ -28,7 +34,7 @@ const Pagination = ({ filter, totalPages }: PaginationProps) => {
       {current > 1 && (
         <PageLink
           className={styles.arrow}
-          href={toHref(filter, current - 1)}
+          href={toHref(basePath, filter, current - 1)}
           aria-label="前のページ"
         >
           <Image
@@ -50,7 +56,7 @@ const Pagination = ({ filter, totalPages }: PaginationProps) => {
           <PageLink
             className={styles.page}
             key={page}
-            href={toHref(filter, page)}
+            href={toHref(basePath, filter, page)}
             aria-label={`${page}ページ目`}
             aria-current={page === current ? "page" : undefined}
           >
@@ -61,7 +67,7 @@ const Pagination = ({ filter, totalPages }: PaginationProps) => {
       {current < totalPages && (
         <PageLink
           className={styles.arrow}
-          href={toHref(filter, current + 1)}
+          href={toHref(basePath, filter, current + 1)}
           aria-label="次のページ"
         >
           <Image
