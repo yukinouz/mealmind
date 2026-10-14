@@ -24,11 +24,19 @@ npm run dev     # 開発用サーバーを起動する
 
 ## 開発用のコマンド
 
-| コマンド         | 内容                                           |
-| ---------------- | ---------------------------------------------- |
-| `npm run lint`   | Biome と Prettier で書き方と整形をチェックする |
-| `npm run format` | Biome と Prettier で整形する                   |
-| `npm run build`  | 本番用にビルドする                             |
+| コマンド             | 内容                                           |
+| -------------------- | ---------------------------------------------- |
+| `npm test`           | テストを1回実行する                            |
+| `npm run test:watch` | ファイルを保存するたびにテストを実行する       |
+| `npm run lint`       | Biome と Prettier で書き方と整形をチェックする |
+| `npm run format`     | Biome と Prettier で整形する                   |
+| `npm run build`      | 本番用にビルドする                             |
+
+## テスト
+
+- Vitest で書き、対象のファイルと同じディレクトリに `*.test.ts` で置く（[ADR-0014](../docs/adr/0014-テストはVitestで対象と同じ場所に置く.md)）
+- 日時は日本時間（`TZ=Asia/Tokyo`）で実行する
+- `src/lib/recipes.ts` は、環境変数 `MEALMIND_DATA_DIR` があればそのディレクトリの `recipes.json`・`excluded.json` を読み書きする。テストでは一時ディレクトリに向け、`data/personal/` には触れない
 
 ## デザイン
 
@@ -49,7 +57,7 @@ npm run dev     # 開発用サーバーを起動する
 ## 構成
 
 - Next.js（App Router）＋ TypeScript
-- コードのチェックと整形は Biome と Prettier
+- コードのチェックと整形は Biome と Prettier、テストは Vitest
 
 | フォルダ       | 役割                                                       |
 | -------------- | ---------------------------------------------------------- |
