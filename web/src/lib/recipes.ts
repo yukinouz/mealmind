@@ -3,11 +3,20 @@ import path from "node:path";
 import { type Cuisine, isCuisine } from "@/utils/cuisine";
 import { toLocalDate, toLocalDateTime } from "@/utils/localDate";
 
-// npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
-// 個人データは mealmind-data リポジトリにあり、data/personal はそこへのリンク
-const DATA_DIR = path.resolve(process.cwd(), "..", "data", "personal");
-const RECIPES_PATH = path.join(DATA_DIR, "recipes.json");
-const EXCLUDED_PATH = path.join(DATA_DIR, "excluded.json");
+/**
+ * 個人データを置くディレクトリ。MEALMIND_DATA_DIR があればそこを使う（テストで一時ディレクトリに向けるため）
+ * なければ data/personal。npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
+ * 個人データは mealmind-data リポジトリにあり、data/personal はそこへのリンク
+ */
+const dataDir = (): string =>
+  process.env.MEALMIND_DATA_DIR ??
+  path.resolve(process.cwd(), "..", "data", "personal");
+
+/** recipes.json の場所。環境変数の変更に追いつけるよう、使うたびに組み立てる */
+const recipesPath = (): string => path.join(dataDir(), "recipes.json");
+
+/** excluded.json の場所。環境変数の変更に追いつけるよう、使うたびに組み立てる */
+const excludedPath = (): string => path.join(dataDir(), "excluded.json");
 
 export type Meal = "lunch" | "dinner";
 
@@ -98,7 +107,7 @@ export const updateFavorite = (id: string, isFavorite: boolean) =>
     const recipes = data.recipes.map((recipe) =>
       recipe.id === id ? { ...recipe, isFavorite } : recipe,
     );
-    await writeJsonSafely(RECIPES_PATH, { ...data, recipes });
+    await writeJsonSafely(recipesPath(), { ...data, recipes });
   });
 
 /**
@@ -121,7 +130,7 @@ export const recordMake = (recipe: NewRecipe) =>
         chosenDates: [today],
         isFavorite: false,
       };
-      await writeJsonSafely(RECIPES_PATH, {
+      await writeJsonSafely(recipesPath(), {
         ...data,
         recipes: [...data.recipes, added],
       });
@@ -136,7 +145,7 @@ export const recordMake = (recipe: NewRecipe) =>
     const recipes = data.recipes.map((item) =>
       item === existing ? updated : item,
     );
-    await writeJsonSafely(RECIPES_PATH, { ...data, recipes });
+    await writeJsonSafely(recipesPath(), { ...data, recipes });
   });
 
 /** 「作らない」を記録する。同じ URL がすでにあれば何もしない */
@@ -155,7 +164,7 @@ export const recordReject = (recipe: NewRecipe) =>
       excludedAt: toLocalDateTime(new Date()),
       reason: "rejected",
     };
-    await writeJsonSafely(EXCLUDED_PATH, {
+    await writeJsonSafely(excludedPath(), {
       ...data,
       excluded: [...data.excluded, added],
     });
@@ -192,11 +201,11 @@ export const restoreRecipes = (ids: string[]) =>
       }));
 
     // 途中で止まっても消えないよう、先に移し先へ書いてから元を消す
-    await writeJsonSafely(RECIPES_PATH, {
+    await writeJsonSafely(recipesPath(), {
       ...data,
       recipes: [...data.recipes, ...moved],
     });
-    await writeJsonSafely(EXCLUDED_PATH, {
+    await writeJsonSafely(excludedPath(), {
       ...excludedData,
       excluded: excludedData.excluded.filter((item) => !isRestored(item)),
     });
@@ -224,8 +233,8 @@ export const hideRecipes = (ids: string[]) =>
       ...moved,
     ];
     // 途中で止まっても消えないよう、先に移し先へ書いてから元を消す
-    await writeJsonSafely(EXCLUDED_PATH, { ...excludedData, excluded });
-    await writeJsonSafely(RECIPES_PATH, {
+    await writeJsonSafely(excludedPath(), { ...excludedData, excluded });
+    await writeJsonSafely(recipesPath(), {
       ...data,
       recipes: data.recipes.filter((item) => !isHidden(item)),
     });
@@ -284,7 +293,7 @@ export const fillIngredients = (
 
     if (target === "recipes") {
       const data = await readRecipesFile();
-      await writeJsonSafely(RECIPES_PATH, {
+      await writeJsonSafely(recipesPath(), {
         ...data,
         recipes: data.recipes.map(fill),
       });
@@ -292,7 +301,7 @@ export const fillIngredients = (
     }
 
     const data = await readExcludedFile();
-    await writeJsonSafely(EXCLUDED_PATH, {
+    await writeJsonSafely(excludedPath(), {
       ...data,
       excluded: data.excluded.map(fill),
     });
@@ -324,11 +333,11 @@ const readJson = async <T>(filePath: string, empty: T): Promise<T> => {
 
 /** recipes.json を読む */
 const readRecipesFile = () =>
-  readJson<RecipesFile>(RECIPES_PATH, { schemaVersion: 1, recipes: [] });
+  readJson<RecipesFile>(recipesPath(), { schemaVersion: 1, recipes: [] });
 
 /** excluded.json を読む */
 const readExcludedFile = () =>
-  readJson<ExcludedFile>(EXCLUDED_PATH, { schemaVersion: 1, excluded: [] });
+  readJson<ExcludedFile>(excludedPath(), { schemaVersion: 1, excluded: [] });
 
 /** 指定したファイルの、レシピの一覧だけを読む */
 const readEntries = async (target: FillTarget): Promise<JsonRecord[]> =>
