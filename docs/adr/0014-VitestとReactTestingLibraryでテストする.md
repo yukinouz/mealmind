@@ -1,4 +1,4 @@
-# 0014. テストは Vitest で書き、対象と同じ場所に置く
+# 0014. Vitest と React Testing Library でテストする
 
 - 日付: 2026-10-14
 - 状態: 採用
@@ -10,15 +10,12 @@
 ## 決定
 
 - 単体テストは Vitest で書きます。画面部品（Client Components）のテストには React Testing Library を加えます
-- 単体テストは、対象のファイルと同じディレクトリに `*.test.ts(x)` で置きます
-- async な Server Components は、E2E テスト（Playwright）で確かめます。置き場所は `web/e2e/` にします（未導入）
+- テストは、対象のファイルと同じディレクトリに `*.test.ts(x)` で置きます
 - テストから `data/personal/` を読み書きしないよう、`src/lib/recipes.ts` はデータの場所を環境変数 `MEALMIND_DATA_DIR` で変えられるようにします
 
 ## 理由
 
-- Vitest は設定が少なく、TypeScript と `@/*` の別名をそのまま読めます
 - 部品とスタイルを同じフォルダに置いているので、テストも隣に置くとそろいます。App Router では決まった名前のファイルだけがページになるため、`app/` に置いても公開されません
-- async な Server Components は、Vitest と React Testing Library では描画できません
 - `process.cwd()` を差し替える方法は、読み込む順番に気をつける必要があり、意図も読み取りにくいため、環境変数にしました
 
 ## 影響
@@ -28,4 +25,7 @@
 ## 検討した他の案
 
 - **`tests/` にまとめる**：`src/` と同じフォルダ構成を保ち続ける必要があり、ファイルを移動するとずれやすいため見送りました
-- **Jest**：TypeScript と ESM を読むための設定が多くなるため見送りました
+
+## 備考
+
+- async な Server Components は Vitest と React Testing Library では描画できないため、今後 E2E テスト（Playwright）を検討します

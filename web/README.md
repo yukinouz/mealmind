@@ -34,9 +34,7 @@ npm run dev     # 開発用サーバーを起動する
 
 ## テスト
 
-- Vitest で書き、対象のファイルと同じディレクトリに `*.test.ts` で置く（[ADR-0014](../docs/adr/0014-テストはVitestで対象と同じ場所に置く.md)）
-- 日時は日本時間（`TZ=Asia/Tokyo`）で実行する
-- `src/lib/recipes.ts` は、環境変数 `MEALMIND_DATA_DIR` があればそのディレクトリの `recipes.json`・`excluded.json` を読み書きする。テストでは一時ディレクトリに向け、`data/personal/` には触れない
+- Vitest：`src/utils/` の関数（絞り込み・ページ送りなど）と、`src/lib/recipes.ts` のレシピの記録・非表示・復元をテストする
 
 ## デザイン
 
