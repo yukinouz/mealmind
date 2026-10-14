@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { toLocalDate, toLocalDateTime } from "./localDate";
 
-// vitest.config.ts で TZ を Asia/Tokyo にしているので、日本時間で確かめる
+// vitest.config.mts で TZ を Asia/Tokyo にしているので、日本時間で確かめる
 describe("toLocalDate", () => {
   it("手元の時刻での日付を YYYY-MM-DD で返す", () => {
     expect(toLocalDate(new Date(2026, 0, 5, 12))).toBe("2026-01-05");

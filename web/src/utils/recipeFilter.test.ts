@@ -193,6 +193,7 @@ describe("filterRecipes", () => {
       cuisine: undefined,
     }),
   ];
+  /** 条件で絞り込んだレシピの id */
   const idsOf = (filter: RecipeFilter) =>
     filterRecipes(recipes, filter).map((recipe) => recipe.id);
 
@@ -241,6 +242,7 @@ describe("sortRecipes", () => {
     // 時差の表記が違っても、日時として比べる（日本時間の 2026-10-02T09:00）
     { id: "c", registeredAt: "2026-10-02T00:00:00Z" },
   ];
+  /** 並べ替えたレシピの id */
   const idsOf = (order: "newest" | "oldest") =>
     sortRecipes(recipes, order).map((recipe) => recipe.id);
 

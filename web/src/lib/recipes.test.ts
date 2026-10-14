@@ -7,6 +7,8 @@ import {
   findUnfilled,
   hideRecipes,
   type NewRecipe,
+  readHiddenRecipes,
+  readMainIngredientNames,
   readRecipes,
   recordMake,
   recordReject,
@@ -78,9 +80,22 @@ afterEach(async () => {
   await rm(tmpDir, { recursive: true, force: true });
 });
 
-describe("readRecipes", () => {
+describe("readRecipes / readHiddenRecipes", () => {
   it("ファイルがまだなければ空の一覧を返す", async () => {
     expect(await readRecipes()).toEqual([]);
+    expect(await readHiddenRecipes()).toEqual([]);
+  });
+});
+
+describe("readMainIngredientNames", () => {
+  it("メイン食材の名前を、重ならないように集める", async () => {
+    await givenRecipes([
+      savedRecipe("a", { mainIngredients: ["鯖", "味噌"] }),
+      savedRecipe("b", { mainIngredients: ["味噌", "豆腐"] }),
+      savedRecipe("c", { mainIngredients: undefined }),
+    ]);
+
+    expect(await readMainIngredientNames()).toEqual(["鯖", "味噌", "豆腐"]);
   });
 });
 
@@ -127,7 +142,7 @@ describe("recordMake", () => {
     expect(recipes[0].meals).toEqual(["dinner"]);
   });
 
-  it("同時に呼んでも、どちらの記録も消えない", async () => {
+  it("同時に呼んでも、どの記録も消えない", async () => {
     await Promise.all([
       recordMake(newRecipe("a")),
       recordMake(newRecipe("b")),
@@ -140,6 +155,22 @@ describe("recordMake", () => {
       "b",
       "c",
     ]);
+  });
+
+  it("前の書き込みが失敗しても、次の書き込みは実行する", async () => {
+    await writeFile(path.join(tmpDir, "recipes.json"), "{壊れた JSON", "utf8");
+    const failed = recordMake(newRecipe("a"));
+    // 1回目の失敗を待つ前に、2回目を順番待ちに入れる
+    const next = (async () => {
+      await failed.catch(() => undefined);
+      await givenRecipes([]);
+      return recordMake(newRecipe("b"));
+    })();
+
+    await expect(failed).rejects.toThrow();
+    await next;
+    const { recipes } = await readJson("recipes.json");
+    expect(recipes.map((recipe: { id: string }) => recipe.id)).toEqual(["b"]);
   });
 
   it("jq と同じ形（2スペース・末尾に改行）で書き、一時ファイルを残さない", async () => {
@@ -289,6 +320,23 @@ describe("restoreRecipes", () => {
     expect(excluded).toEqual([]);
   });
 
+  it("excluded.json に同じ URL が重なっていても、1件だけ移す", async () => {
+    await givenExcluded([
+      { ...savedRecipe("a"), excludedAt: NOW_TEXT, reason: "hidden" },
+      {
+        ...savedRecipe("a2", { url: savedRecipe("a").url }),
+        reason: "rejected",
+      },
+    ]);
+
+    await restoreRecipes(["a", "a2"]);
+
+    const { recipes } = await readJson("recipes.json");
+    const { excluded } = await readJson("excluded.json");
+    expect(recipes).toEqual([savedRecipe("a")]);
+    expect(excluded).toEqual([]);
+  });
+
   it("隠してから戻すと、元の情報がすべて戻る", async () => {
     await givenRecipes([savedRecipe("a", { isFavorite: true })]);
 
@@ -340,5 +388,50 @@ describe("findUnfilled / fillIngredients", () => {
     const { recipes } = await readJson("recipes.json");
     expect(recipes[0]).toMatchObject(result);
     expect(recipes[1]).toEqual(savedRecipe("c", { cuisine: "chuka" }));
+  });
+
+  it("すでに埋まっているレシピは書き換えず、正しくない料理の系統は埋め直す", async () => {
+    await givenRecipes([
+      savedRecipe("a"),
+      savedRecipe("b", { cuisine: "french" }),
+    ]);
+
+    await fillIngredients("recipes", [
+      {
+        id: "a",
+        ingredients: [],
+        mainIngredients: ["豚肉"],
+        cuisine: "chuka",
+      },
+      {
+        id: "b",
+        ingredients: [],
+        mainIngredients: ["豚肉"],
+        cuisine: "yoshoku",
+      },
+    ]);
+
+    const { recipes } = await readJson("recipes.json");
+    expect(recipes).toEqual([
+      savedRecipe("a"),
+      savedRecipe("b", { cuisine: "yoshoku" }),
+    ]);
+  });
+
+  it("excluded を指定すると、excluded.json の側を埋める", async () => {
+    await givenExcluded([
+      { ...savedRecipe("a", { cuisine: undefined }), reason: "hidden" },
+    ]);
+
+    expect((await findUnfilled("excluded")).map((item) => item.id)).toEqual([
+      "a",
+    ]);
+    await fillIngredients("excluded", [
+      { id: "a", ingredients: [], mainIngredients: [], cuisine: "other" },
+    ]);
+
+    const { excluded } = await readJson("excluded.json");
+    expect(excluded[0].cuisine).toBe("other");
+    await expect(readFile(path.join(tmpDir, "recipes.json"))).rejects.toThrow();
   });
 });
