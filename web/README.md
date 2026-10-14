@@ -30,6 +30,7 @@ npm run dev     # 開発用サーバーを起動する
 | `npm run test:watch` | ファイルを保存するたびにテストを実行する       |
 | `npm run lint`       | Biome と Prettier で書き方と整形をチェックする |
 | `npm run format`     | Biome と Prettier で整形する                   |
+| `npm run typecheck`  | TypeScript の型の誤りをチェックする            |
 | `npm run build`      | 本番用にビルドする                             |
 
 ## テスト

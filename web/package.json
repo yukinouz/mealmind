@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "biome check && prettier --check \"src/**/*.scss\"",
     "format": "biome format --write && prettier --write \"src/**/*.scss\"",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },
