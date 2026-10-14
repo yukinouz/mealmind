@@ -34,8 +34,9 @@ npm run dev     # 開発用サーバーを起動する
 
 ## テスト
 
-- Vitest で書き、対象のファイルと同じディレクトリに `*.test.ts` で置く（[ADR-0014](../docs/adr/0014-テストはVitestで対象と同じ場所に置く.md)）
+- Vitest で書き、対象のファイルと同じディレクトリに `*.test.ts` で置く。画面部品は React Testing Library で書き、`*.test.tsx` にすると jsdom（ブラウザの代わり）で動く（[ADR-0014](../docs/adr/0014-テストはVitestで対象と同じ場所に置く.md)）
 - 日時は日本時間（`TZ=Asia/Tokyo`）で実行する
+- 画面部品のテストでは、`next/navigation` とサーバーアクションを `vi.mock` で偽物にする。async な Server Components はテストできないため、E2E で確かめる（未導入）
 - `src/lib/recipes.ts` は、環境変数 `MEALMIND_DATA_DIR` があればそのディレクトリの `recipes.json`・`excluded.json` を読み書きする。テストでは一時ディレクトリに向け、`data/personal/` には触れない
 
 ## デザイン
@@ -57,7 +58,7 @@ npm run dev     # 開発用サーバーを起動する
 ## 構成
 
 - Next.js（App Router）＋ TypeScript
-- コードのチェックと整形は Biome と Prettier、テストは Vitest
+- コードのチェックと整形は Biome と Prettier、テストは Vitest と React Testing Library
 
 | フォルダ       | 役割                                                       |
 | -------------- | ---------------------------------------------------------- |
