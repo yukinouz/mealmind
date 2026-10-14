@@ -35,6 +35,7 @@ npm run dev     # 開発用サーバーを起動する
 ## テスト
 
 - Vitest：`src/utils/` の関数（絞り込み・ページ送りなど）と、`src/lib/recipes.ts` のレシピの記録・非表示・復元をテストする
+- React Testing Library：レシピの整理（削除・一覧に戻す）と、絞り込み欄・検索欄の画面部品をテストする
 
 ## デザイン
 
@@ -55,7 +56,7 @@ npm run dev     # 開発用サーバーを起動する
 ## 構成
 
 - Next.js（App Router）＋ TypeScript
-- コードのチェックと整形は Biome と Prettier、テストは Vitest
+- コードのチェックと整形は Biome と Prettier、テストは Vitest と React Testing Library
 
 | フォルダ       | 役割                                                       |
 | -------------- | ---------------------------------------------------------- |
