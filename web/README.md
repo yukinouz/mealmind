@@ -24,11 +24,17 @@ npm run dev     # 開発用サーバーを起動する
 
 ## 開発用のコマンド
 
-| コマンド         | 内容                                           |
-| ---------------- | ---------------------------------------------- |
-| `npm run lint`   | Biome と Prettier で書き方と整形をチェックする |
-| `npm run format` | Biome と Prettier で整形する                   |
-| `npm run build`  | 本番用にビルドする                             |
+| コマンド             | 内容                                           |
+| -------------------- | ---------------------------------------------- |
+| `npm test`           | テストを1回実行する                            |
+| `npm run test:watch` | ファイルを保存するたびにテストを実行する       |
+| `npm run lint`       | Biome と Prettier で書き方と整形をチェックする |
+| `npm run format`     | Biome と Prettier で整形する                   |
+| `npm run build`      | 本番用にビルドする                             |
+
+## テスト
+
+- Vitest：`src/utils/` の関数（絞り込み・ページ送りなど）と、`src/lib/recipes.ts` のレシピの記録・非表示・復元をテストする
 
 ## デザイン
 
@@ -49,7 +55,7 @@ npm run dev     # 開発用サーバーを起動する
 ## 構成
 
 - Next.js（App Router）＋ TypeScript
-- コードのチェックと整形は Biome と Prettier
+- コードのチェックと整形は Biome と Prettier、テストは Vitest
 
 | フォルダ       | 役割                                                       |
 | -------------- | ---------------------------------------------------------- |
