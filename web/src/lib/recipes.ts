@@ -4,12 +4,12 @@ import { type Cuisine, isCuisine } from "@/utils/cuisine";
 import { toLocalDate, toLocalDateTime } from "@/utils/localDate";
 
 /**
- * 個人データを置くディレクトリ。MEALMIND_DATA_DIR があればそこを使う（テストで一時ディレクトリに向けるため）
+ * 個人データを置くディレクトリ。MEALMIND_DATA_DIR が空でなければそこを使う（テストで一時ディレクトリに向けるため）
  * なければ data/personal。npm run dev は web/ で実行するので、リポジトリ直下は1つ上になる
  * 個人データは mealmind-data リポジトリにあり、data/personal はそこへのリンク
  */
 const dataDir = (): string =>
-  process.env.MEALMIND_DATA_DIR ??
+  process.env.MEALMIND_DATA_DIR ||
   path.resolve(process.cwd(), "..", "data", "personal");
 
 /** recipes.json の場所。環境変数の変更に追いつけるよう、使うたびに組み立てる */
