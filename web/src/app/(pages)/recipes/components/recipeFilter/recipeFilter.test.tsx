@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -29,8 +29,12 @@ const filterOf = (overrides: Partial<Filter>): Filter => ({
   ...overrides,
 });
 
-/** ページと同じように、整理の Provider の中に絞り込み欄を描く */
+/**
+ * ページと同じように、整理の Provider の中に絞り込み欄を描く
+ * 偽の router は URL を書き換えても描き直さない。続けて操作するときは、rerenderWith で新しい条件を渡す
+ */
 const renderFilter = (filter: Filter = DEFAULT_FILTER) => {
+  /** 指定した条件で描く中身 */
   const ui = (next: Filter) => (
     <RecipeManageProvider mode="hide">
       <RecipeFilter filter={next} channels={CHANNELS} />
@@ -41,9 +45,14 @@ const renderFilter = (filter: Filter = DEFAULT_FILTER) => {
   return { rerenderWith: (next: Filter) => result.rerender(ui(next)) };
 };
 
-/** 名前で選ぶボタン。「すべて」のように同じ名前が並ぶものは何番目かで選ぶ */
-const button = (name: string, index = 0) =>
-  screen.getAllByRole("button", { name })[index];
+/** 名前で選ぶボタン */
+const button = (name: string) => screen.getByRole("button", { name });
+
+/** 項目（食事・ジャンル・チャンネル）の行の「すべて」ボタン */
+const allButtonOf = (group: string) =>
+  within(screen.getByRole("group", { name: group })).getByRole("button", {
+    name: "すべて",
+  });
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -63,15 +72,19 @@ describe("絞り込みのボタン", () => {
 
   it("同じ項目の中は、押すたびに足したり外したりする", async () => {
     const user = userEvent.setup();
-    renderFilter(filterOf({ cuisines: ["washoku"] }));
+    const { rerenderWith } = renderFilter(filterOf({ cuisines: ["washoku"] }));
 
     await user.click(button("中華"));
     expect(replace).toHaveBeenLastCalledWith("/recipes?cuisine=washoku,chuka", {
       scroll: false,
     });
 
+    // サーバーから新しい条件が届いたとする
+    rerenderWith(filterOf({ cuisines: ["washoku", "chuka"] }));
     await user.click(button("和食"));
-    expect(replace).toHaveBeenLastCalledWith("/recipes", { scroll: false });
+    expect(replace).toHaveBeenLastCalledWith("/recipes?cuisine=chuka", {
+      scroll: false,
+    });
   });
 
   it("選んでいるものは押された見た目になる", () => {
@@ -80,15 +93,15 @@ describe("絞り込みのボタン", () => {
     expect(button("シェフB")).toHaveAttribute("aria-pressed", "true");
     expect(button("シェフA")).toHaveAttribute("aria-pressed", "false");
     // 食事は何も選んでいないので「すべて」が押されている
-    expect(button("すべて", 0)).toHaveAttribute("aria-pressed", "true");
-    expect(button("すべて", 2)).toHaveAttribute("aria-pressed", "false");
+    expect(allButtonOf("食事")).toHaveAttribute("aria-pressed", "true");
+    expect(allButtonOf("チャンネル")).toHaveAttribute("aria-pressed", "false");
   });
 
   it("「すべて」がすでに押されていれば、押しても URL を書き換えない", async () => {
     const user = userEvent.setup();
     renderFilter(filterOf({ page: 2 }));
 
-    await user.click(button("すべて", 0));
+    await user.click(allButtonOf("食事"));
 
     expect(replace).not.toHaveBeenCalled();
   });
@@ -125,15 +138,17 @@ describe("条件をクリア", () => {
 describe("♡のみ・並び順・表示形式", () => {
   it("♡のみと並び順は、変えると1ページ目に戻す", async () => {
     const user = userEvent.setup();
-    renderFilter(filterOf({ page: 3 }));
+    const { rerenderWith } = renderFilter(filterOf({ page: 3 }));
 
     await user.click(button("お気に入りのみ"));
     expect(replace).toHaveBeenLastCalledWith("/recipes?fav=1", {
       scroll: false,
     });
 
+    // サーバーから新しい条件が届いたあと、2ページ目に進んだとする
+    rerenderWith(filterOf({ isFavoriteOnly: true, page: 2 }));
     await user.click(button("追加日が新しい順（押すと古い順）"));
-    expect(replace).toHaveBeenLastCalledWith("/recipes?order=oldest", {
+    expect(replace).toHaveBeenLastCalledWith("/recipes?fav=1&order=oldest", {
       scroll: false,
     });
   });
@@ -181,13 +196,14 @@ describe("検索欄", () => {
   it("日本語の変換中は検索せず、確定してから検索する", () => {
     renderFilter();
 
+    // ブラウザと同じ順番にする。変換中に文字が入り、確定のあとには change が来ない
     fireEvent.compositionStart(searchBox());
-    fireEvent.change(searchBox(), { target: { value: "さば" } });
+    fireEvent.change(searchBox(), { target: { value: "鯖" } });
     act(() => vi.advanceTimersByTime(1000));
     expect(replace).not.toHaveBeenCalled();
 
+    // 確定しただけで検索が始まる
     fireEvent.compositionEnd(searchBox());
-    fireEvent.change(searchBox(), { target: { value: "鯖" } });
     act(() => vi.advanceTimersByTime(300));
     expect(replace).toHaveBeenCalledTimes(1);
     expect(replace).toHaveBeenCalledWith(

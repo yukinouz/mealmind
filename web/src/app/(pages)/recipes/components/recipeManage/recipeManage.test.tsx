@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { hideRecipesAction } from "@/actions/hide";
@@ -54,7 +54,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // vi.fn() で作った偽物（replace・保存の処理）の呼び出し記録を消す
   vi.clearAllMocks();
+  // vi.spyOn で差し替えた scrollTo・confirm を本物に戻す
   vi.restoreAllMocks();
 });
 
@@ -125,10 +127,37 @@ describe("完了", () => {
     await user.click(screen.getByRole("button", { name: "完了" }));
 
     expect(hideRecipesAction).toHaveBeenCalledWith(["a", "b"]);
-    expect(replace).toHaveBeenCalledWith("/recipes?meal=lunch", {
-      scroll: false,
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith("/recipes?meal=lunch", {
+        scroll: false,
+      }),
+    );
+    expect(window.scrollTo).toHaveBeenCalledWith({
+      top: 0,
+      behavior: "smooth",
     });
     expect(toggleButton()).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("保存中はボタンを押せなくする", async () => {
+    // 保存が終わらないようにして、保存中の見た目を確かめる
+    vi.mocked(hideRecipesAction).mockReturnValue(new Promise(() => undefined));
+    const user = userEvent.setup();
+    renderManage();
+    await user.click(toggleButton());
+    await user.click(
+      screen.getByRole("button", { name: "「鯖の味噌煮」を削除予定にする" }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "完了" }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "完了" })).toBeDisabled(),
+    );
+    expect(toggleButton()).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "「鯖の味噌煮」の削除を取り消す" }),
+    ).toBeDisabled();
   });
 
   it("予定がなければ保存せずに整理をやめる", async () => {
@@ -179,7 +208,11 @@ describe("完了", () => {
 
     expect(restoreRecipesAction).toHaveBeenCalledWith(["b"]);
     expect(hideRecipesAction).not.toHaveBeenCalled();
-    expect(replace).toHaveBeenCalledWith("/recipes/hidden", { scroll: false });
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith("/recipes/hidden", {
+        scroll: false,
+      }),
+    );
   });
 });
 
@@ -236,59 +269,63 @@ describe("予定を残したままページを離れるときの確認", () => {
     );
   };
 
-  /**
-   * リンクを左クリックしたときのイベントを送り、そのイベントを返す
-   * 移動が止められたかは、返したイベントの defaultPrevented で分かる
-   */
+  /** リンクを左クリックしたときのイベントを送り、そのイベントを返す。移動が止められたかは defaultPrevented で分かる */
   const clickLink = (name: string) => {
-    const link = screen.getByRole("link", { name });
-    // 確認のあとに jsdom が本当にページを移ろうとしないよう、最後に受け取るリンク自身で止める
-    link.addEventListener("click", (event) => event.preventDefault());
     const event = new MouseEvent("click", {
       bubbles: true,
       cancelable: true,
       button: 0,
     });
-    link.dispatchEvent(event);
+    screen.getByRole("link", { name }).dispatchEvent(event);
     return event;
+  };
+
+  /**
+   * リンク自身が受け取ったときに、移動が止められていたかを記録する
+   * 記録したあとは、jsdom が本当にページを移ろうとしないよう止める
+   */
+  const watchLink = (name: string) => {
+    const preventedAtLink: boolean[] = [];
+    screen.getByRole("link", { name }).addEventListener("click", (event) => {
+      preventedAtLink.push(event.defaultPrevented);
+      event.preventDefault();
+    });
+    return preventedAtLink;
   };
 
   it("別のページへのリンクを押すと確認し、断ればその場にとどまる", async () => {
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    const onLinkClick = vi.fn();
     await addPending();
-    screen
-      .getByRole("link", { name: "トップへ" })
-      .addEventListener("click", onLinkClick);
+    const preventedAtLink = watchLink("トップへ");
 
-    clickLink("トップへ");
+    const event = clickLink("トップへ");
 
     expect(confirm).toHaveBeenCalledWith(
       expect.stringContaining("削除予定の 1件は、まだ削除されていません"),
     );
-    // 断ったので、リンクまでイベントが届かない
-    expect(onLinkClick).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(true);
+    // Next.js の Link も動かないよう、リンクまでイベントを届けない
+    expect(preventedAtLink).toEqual([]);
   });
 
   it("確認で「OK」を押せば、そのまま移る", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
-    const onLinkClick = vi.fn();
     await addPending();
-    screen
-      .getByRole("link", { name: "トップへ" })
-      .addEventListener("click", onLinkClick);
+    const preventedAtLink = watchLink("トップへ");
 
     clickLink("トップへ");
 
-    expect(onLinkClick).toHaveBeenCalled();
+    expect(preventedAtLink).toEqual([false]);
   });
 
   it("同じページの中の移動（ページ送り）は確認しない", async () => {
     const confirm = vi.spyOn(window, "confirm");
     await addPending();
+    const preventedAtLink = watchLink("2ページ目へ");
 
     clickLink("2ページ目へ");
 
     expect(confirm).not.toHaveBeenCalled();
+    expect(preventedAtLink).toEqual([false]);
   });
 });

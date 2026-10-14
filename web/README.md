@@ -36,7 +36,7 @@ npm run dev     # 開発用サーバーを起動する
 
 - Vitest で書き、対象のファイルと同じディレクトリに `*.test.ts` で置く。画面部品は React Testing Library で書き、`*.test.tsx` にすると jsdom（ブラウザの代わり）で動く（[ADR-0014](../docs/adr/0014-テストはVitestで対象と同じ場所に置く.md)）
 - 日時は日本時間（`TZ=Asia/Tokyo`）で実行する
-- 画面部品のテストでは、`next/navigation` とサーバーアクションを `vi.mock` で偽物にする。async な Server Components はテストできないため、E2E で確かめる（未導入）
+- 画面部品のテストでは、`next/navigation` とサーバーアクションを `vi.mock` で偽物にする。偽の router は URL を書き換えても描き直さないので、続けて操作するときは `rerender` で新しい条件を渡す。async な Server Components はテストできないため、E2E で確かめる（未導入）
 - `src/lib/recipes.ts` は、環境変数 `MEALMIND_DATA_DIR` があればそのディレクトリの `recipes.json`・`excluded.json` を読み書きする。テストでは一時ディレクトリに向け、`data/personal/` には触れない
 
 ## デザイン
