@@ -11,11 +11,15 @@
   "lockFileMaintenance": { "enabled": true },
   "packageRules": [
     {
+      "description": "Node.js と型定義の更新には node ラベルを付ける",
+      "matchPackageNames": ["node", "@types/node"],
+      "addLabels": ["node"]
+    },
+    {
       "description": "Node.js と型定義のマイナー・パッチ更新は1つの PR にまとめる。メジャー更新は承認制を型定義だけにかけるため、まとめない",
       "groupName": "Node.js",
       "matchPackageNames": ["node", "@types/node"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "addLabels": ["node"]
+      "matchUpdateTypes": ["minor", "patch"]
     },
     {
       "description": "型定義のメジャー版は Node.js の LTS より先に出るため、ダッシュボードで承認してから PR を作る",
