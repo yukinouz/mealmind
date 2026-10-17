@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":timezone(Asia/Tokyo)",
+    ":labels(renovate, dependencies)",
+    ":enableVulnerabilityAlertsWithLabel(security)"
+  ],
+  "enabledManagers": ["npm", "github-actions", "nodenv"],
+  "minimumReleaseAge": "3 days",
+  "lockFileMaintenance": { "enabled": true },
+  "packageRules": [
+    {
+      "description": "Node.js と型定義の更新は1つの PR にまとめる",
+      "groupName": "Node.js",
+      "matchPackageNames": ["node", "@types/node"],
+      "addLabels": ["node"]
+    },
+    {
+      "description": "型定義のメジャー版は Node.js の LTS より先に出るため、ダッシュボードで承認してから PR を作る",
+      "matchPackageNames": ["@types/node"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}
