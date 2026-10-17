@@ -9,6 +9,7 @@
   "enabledManagers": ["npm", "github-actions", "nodenv"],
   "minimumReleaseAge": "3 days",
   "lockFileMaintenance": { "enabled": true },
+  "vulnerabilityAlerts": { "automerge": false },
   "packageRules": [
     {
       "description": "Node.js と型定義の更新には node ラベルを付ける",
@@ -26,6 +27,11 @@
       "matchPackageNames": ["@types/node"],
       "matchUpdateTypes": ["major"],
       "dependencyDashboardApproval": true
+    },
+    {
+      "description": "パッチ更新は CI が通れば自動でマージする",
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
     }
   ]
 }
