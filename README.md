@@ -174,6 +174,13 @@ scripts/pick-recipe.sh 豚バラ --count 5           # YouTube だけから、�
 - 食事は `--meal` で選び、省略すると `dinner` です
 - 「パン」のように短い言葉は「フライパン」などにも一致するので、「食パン」「トースト」のように具体的に書きます
 
+## 依存の更新
+
+npm パッケージ・GitHub Actions・Node.js（`.node-version`）の更新は、Renovate が PR を作ります。設定は [renovate.json](renovate.json) にあります。パッチ更新の PR は、CI が通れば自動でマージされます（セキュリティの修正は除く）。それ以外の PR は手でマージします。
+
+- 公開から3日たったバージョンだけを取り込みます（セキュリティの修正は待たずに PR になります）
+- `@types/node` のメジャー更新は、Dependency Dashboard（Renovate が作る Issue）でチェックを入れると PR になります。Node.js の LTS への PR が来たら、合わせて上げます
+
 ## ディレクトリ構成
 
 ```
