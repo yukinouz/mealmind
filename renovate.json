@@ -3,7 +3,7 @@
   "extends": [
     "config:best-practices",
     ":timezone(Asia/Tokyo)",
-    ":labels(renovate, dependencies)",
+    ":labels(renovate,dependencies)",
     ":enableVulnerabilityAlertsWithLabel(security)"
   ],
   "enabledManagers": ["npm", "github-actions", "nodenv"],
@@ -11,9 +11,10 @@
   "lockFileMaintenance": { "enabled": true },
   "packageRules": [
     {
-      "description": "Node.js と型定義の更新は1つの PR にまとめる",
+      "description": "Node.js と型定義のマイナー・パッチ更新は1つの PR にまとめる。メジャー更新は承認制を型定義だけにかけるため、まとめない",
       "groupName": "Node.js",
       "matchPackageNames": ["node", "@types/node"],
+      "matchUpdateTypes": ["minor", "patch"],
       "addLabels": ["node"]
     },
     {
