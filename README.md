@@ -178,7 +178,7 @@ scripts/pick-recipe.sh 豚バラ --count 5           # YouTube だけから、�
 
 npm パッケージ・GitHub Actions・Node.js（`.node-version`）の更新は、Renovate が PR を作ります。設定は [renovate.json](renovate.json) にあります。PR は CI が通ったことを確かめて、手でマージします。
 
-- 公開から3日たったバージョンだけを取り込みます
+- 公開から3日たったバージョンだけを取り込みます（セキュリティの修正は待たずに PR になります）
 - `@types/node` のメジャー更新は、Dependency Dashboard（Renovate が作る Issue）でチェックを入れると PR になります。Node.js の LTS への PR が来たら、合わせて上げます
 
 ## ディレクトリ構成
