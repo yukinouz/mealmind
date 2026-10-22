@@ -1,6 +1,6 @@
 # mealmind web
 
-mealmind を、ローカルで動かす Web アプリです。
+mealmind の Web アプリの、ページの仕様と開発のための説明です。セットアップと全体の説明は [ルートの README](../README.md) にあります。
 
 ## 必要なもの
 
