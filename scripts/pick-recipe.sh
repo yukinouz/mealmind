@@ -96,7 +96,7 @@ shopt -u nullglob
 
 jq -n \
   --argjson sources "$(read_json "$PERSONAL_DIR/sources.json" '{"sources":[]}')" \
-  --argjson settings "$(read_json "$DATA_DIR/settings.json" '{}')" \
+  --argjson settings "$(read_json "$PERSONAL_DIR/settings.json" '{}')" \
   --argjson prefs "$prefs" \
   --arg meal "$meal" \
   --argjson recipes "$(read_json "$PERSONAL_DIR/recipes.json" '{"recipes":[]}')" \

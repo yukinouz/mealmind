@@ -5,11 +5,11 @@
   "pantryIngredients": ["にんにく", "しょうが", "小ねぎ"],
   "avoidTitleKeywords": ["ケーキ", "プリン"],
   "genres": {
-    "noodles": ["パスタ", "麺", "そば", "うどん"],
-    "bread": ["食パン", "トースト"]
+    "麺類": ["パスタ", "麺", "そば", "うどん"],
+    "パン": ["食パン", "トースト"]
   },
   "meals": {
-    "lunch": { "onlyGenres": ["noodles", "bread"] },
-    "dinner": { "avoidGenres": ["noodles", "bread"], "avoidTitleKeywords": [] }
+    "lunch": { "onlyGenres": ["麺類", "パン"] },
+    "dinner": { "avoidGenres": ["麺類", "パン"], "avoidTitleKeywords": [] }
   }
 }
