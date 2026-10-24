@@ -1,0 +1,122 @@
+@use "settingsForm";
+@use "variables";
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(12);
+}
+
+.field {
+  @extend %settingsCard;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: variables.space(16) variables.space(32);
+}
+
+.fieldText {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  row-gap: variables.space(4);
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.fieldHelp {
+  color: variables.$color-text-sub;
+}
+
+.fieldInput {
+  display: flex;
+  align-items: center;
+  column-gap: 6px;
+}
+
+.numberInput {
+  @extend %settingsNumberInput;
+
+  width: 80px;
+}
+
+.unit {
+  min-width: 1.5em;
+  font-weight: 700;
+}
+
+// 出やすさのくらべ
+
+.compare {
+  margin-top: variables.space(32);
+  padding: 20px variables.space(24);
+  border-radius: variables.$radius16;
+  background-color: variables.$color-brown100;
+}
+
+.compareTitle {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.compareLead {
+  margin-top: variables.space(4);
+  color: variables.$color-text-sub;
+  font-size: 13px;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+  margin-top: variables.space(16);
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 9em minmax(0, 1fr) 3em;
+  align-items: center;
+  column-gap: variables.space(12);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.barTrack {
+  height: 12px;
+  overflow: hidden;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-white;
+}
+
+%bar {
+  height: 100%;
+  border-radius: variables.$radius-pill;
+}
+
+.barNew {
+  @extend %bar;
+
+  background-color: variables.$color-orange500;
+}
+
+.barFavorite {
+  @extend %bar;
+
+  background-color: variables.$color-orange700;
+}
+
+.barChosen {
+  @extend %bar;
+
+  background-color: variables.$color-orange800;
+}
+
+.barValue {
+  text-align: right;
+}

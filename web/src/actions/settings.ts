@@ -5,6 +5,7 @@ import {
   fetchVideos,
   lookupChannel,
 } from "@/lib/channelScripts";
+import { writeSuggestSettings } from "@/lib/settings";
 import {
   type ChannelSetting,
   type ChannelWithVideos,
@@ -12,6 +13,9 @@ import {
   writeChannelSettings,
 } from "@/lib/sources";
 import { isTotalWeightValid, TOTAL_WEIGHT } from "@/utils/channelSettings";
+import { fromSuggestForm, isValidSuggestForm } from "@/utils/suggestSettings";
+
+export type SaveResult = { type: "saved" } | { type: "error" };
 
 export type LookupResult =
   | { type: "found"; channel: FoundChannel }
@@ -155,6 +159,21 @@ export const updateVideosAction = async (
 
     const failedIds = await fetchAll([...new Set(ids as string[])]);
     return { type: "done", channels: await readChannelSettings(), failedIds };
+  } catch {
+    return { type: "error" };
+  }
+};
+
+/** 提案のしかたの「保存する」から呼ばれ、settings.json に書く。画面の % は重みに戻す */
+export const saveSuggestSettingsAction = async (
+  form: unknown,
+): Promise<SaveResult> => {
+  if (!isValidSuggestForm(form)) return { type: "error" };
+
+  const { chosen, favorite, days } = form;
+  try {
+    await writeSuggestSettings(fromSuggestForm({ chosen, favorite, days }));
+    return { type: "saved" };
   } catch {
     return { type: "error" };
   }
