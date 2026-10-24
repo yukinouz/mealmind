@@ -39,11 +39,12 @@
    ln -s ../../mealmind-data data/personal
    ```
 
-5. 初めてなら、記入例をコピーして提案元（チャンネル）と好みを設定する
+5. 初めてなら、記入例をコピーして提案元（チャンネル）と好み・抽選の設定をする
 
    ```sh
    cp data/sources.example.json data/personal/sources.json
    cp data/preferences.example.json data/personal/preferences.json   # 好みを設定しないなら不要
+   cp data/settings.example.json data/personal/settings.json         # 既定値のままなら不要
    ```
 
 6. 動画一覧を取得する（後述）
@@ -94,7 +95,7 @@ scripts/fetch-videos.sh ryuji   # sources.json の id を指定する
 | ファイル                    | 内容                                                                     | git                    |
 | --------------------------- | ------------------------------------------------------------------------ | ---------------------- |
 | `personal/sources.json`     | 提案元の YouTube チャンネルと重み・画面に出す短い名前（`shortName`）     | `mealmind-data` に記録 |
-| `settings.json`             | 抽選の設定（「作る」を選んだレシピ・お気に入りの重み、再提案しない日数） | 記録する               |
+| `personal/settings.json`    | 抽選の設定（「作る」を選んだレシピ・お気に入りの重み、再提案しない日数） | `mealmind-data` に記録 |
 | `personal/preferences.json` | 使わない食材・使わない調味料・常備している食材・食事ごとのジャンル       | `mealmind-data` に記録 |
 | `personal/preferences.md`   | 好みの自由なメモ                                                         | `mealmind-data` に記録 |
 | `personal/recipes.json`     | 「作る」と決めたレシピ                                                   | `mealmind-data` に記録 |
@@ -103,7 +104,7 @@ scripts/fetch-videos.sh ryuji   # sources.json の id を指定する
 
 `excluded.json` の1件は `recipes.json` と同じ項目を持ち、外した日時 `excludedAt` と理由 `reason`（`rejected`：提案で「作らない」を選んだ / `hidden`：作るレシピから外した）を加えます。作るレシピに戻せるようにするためです。
 
-`sources.json` と `preferences.json` には、記入例の `*.example.json` があります（記録する）。`sources.json` 以外の個人データのファイルは、なければ空として扱われます。
+`sources.json`・`preferences.json`・`settings.json` には、記入例の `data/*.example.json` があります（記録する）。`sources.json` 以外の個人データのファイルは、なければ空として扱われます（`settings.json` は既定値）。
 
 `mealmind-data` は、`npm run dev`（`web/`）の直前に `scripts/sync-personal-data.sh` が GitHub と同期します（変更をコミット → 取り込み → 送信）。失敗しても警告だけで、Web は起動します。
 
@@ -120,8 +121,8 @@ scripts/fetch-videos.sh ryuji   # sources.json の id を指定する
 ### 重みの考え方
 
 - **チャンネル**：`sources.json` の `weight` の比率で選ばれます（合計が100でなくても構いません）
-- **動画**：まだ「作る」を選んでいない動画 `1`、選んだことがある動画 `0.2`、お気に入り `0.5`
-- 最近（14日以内）「作る」を選んだ動画、「作らない」とした動画、使わない食材・調味料を含む動画は選ばれません
+- **動画**：まだ「作る」を選んでいない動画 `1`、選んだことがある動画 `0.2`、お気に入り `0.5`（どちらも `settings.json` で変えられる既定値）
+- 最近（既定は14日以内）「作る」を選んだ動画、「作らない」とした動画、使わない食材・調味料を含む動画は選ばれません
 - 食事ごとのジャンルの条件に合わない動画も選ばれません（下記）
 - 3分以下の動画（ショート動画）と、概要欄に分量の表記（`大さじ`、`200g` など）が3つ未満の動画は、レシピ動画ではないとみなして選ばれません
 
@@ -152,15 +153,16 @@ scripts/fetch-videos.sh ryuji   # sources.json の id を指定する
 ```json
 "avoidTitleKeywords": ["ケーキ", "プリン"],
 "genres": {
-  "noodles": ["パスタ", "麺", "そば"],
-  "bread": ["食パン", "トースト"]
+  "麺類": ["パスタ", "麺", "そば"],
+  "パン": ["食パン", "トースト"]
 },
 "meals": {
-  "lunch":  { "onlyGenres":  ["noodles", "bread"] },
-  "dinner": { "avoidGenres": ["noodles", "bread"], "avoidTitleKeywords": [] }
+  "lunch":  { "onlyGenres":  ["麺類", "パン"] },
+  "dinner": { "avoidGenres": ["麺類", "パン"], "avoidTitleKeywords": [] }
 }
 ```
 
+- `genres` のキーはジャンルの名前です。`meals` からはこの名前で指定します
 - `onlyGenres`：そのジャンルの言葉をどれか含む動画だけが候補になります
 - `avoidGenres` と食事ごとの `avoidTitleKeywords`：その食事のときだけ外します。一番外側の `avoidTitleKeywords` はいつでも外します
 - 食事は `--meal` で選び、省略すると `dinner` です
