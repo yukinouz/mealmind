@@ -8,6 +8,8 @@ import {
 import {
   PREFERENCE_KEYS,
   type PreferenceLists,
+  readMealsData,
+  writeMealsData,
   writePreferenceLists,
 } from "@/lib/preferences";
 import { writeSuggestSettings } from "@/lib/settings";
@@ -18,6 +20,14 @@ import {
   writeChannelSettings,
 } from "@/lib/sources";
 import { isTotalWeightValid, TOTAL_WEIGHT } from "@/utils/channelSettings";
+import {
+  fromMealsForm,
+  type GenreForm,
+  MEALS,
+  type MealForm,
+  type MealsForm,
+  mealsInvalidReason,
+} from "@/utils/mealSettings";
 import { fromSuggestForm, isValidSuggestForm } from "@/utils/suggestSettings";
 
 export type SaveResult = { type: "saved" } | { type: "error" };
@@ -83,6 +93,52 @@ const isPreferenceLists = (value: unknown): value is PreferenceLists => {
 
   const lists = value as Record<string, unknown>;
   return PREFERENCE_KEYS.every((key) => isWordList(lists[key]));
+};
+
+const GENRE_MODES: readonly string[] = ["all", "only", "except"];
+
+/** 食事とジャンルのページから届いたジャンルか */
+const isGenreForm = (value: unknown): value is GenreForm => {
+  if (typeof value !== "object" || value === null) return false;
+
+  const genre = value as Record<string, unknown>;
+  return (
+    isFilledString(genre.key) &&
+    typeof genre.name === "string" &&
+    isWordList(genre.keywords)
+  );
+};
+
+/** 食事とジャンルのページから届いた、食事ごとの条件か */
+const isMealForm = (value: unknown): value is MealForm => {
+  if (typeof value !== "object" || value === null) return false;
+
+  const meal = value as Record<string, unknown>;
+  return (
+    MEALS.some(({ id }) => id === meal.id) &&
+    typeof meal.mode === "string" &&
+    GENRE_MODES.includes(meal.mode) &&
+    Array.isArray(meal.genreKeys) &&
+    meal.genreKeys.every((key) => typeof key === "string") &&
+    isWordList(meal.keywords)
+  );
+};
+
+/** 食事とジャンルのページから届いた値か。夕食・昼食がそろい、保存できない理由がない */
+const isMealsForm = (value: unknown): value is MealsForm => {
+  if (typeof value !== "object" || value === null) return false;
+
+  const form = value as Record<string, unknown>;
+  return (
+    Array.isArray(form.genres) &&
+    form.genres.every(isGenreForm) &&
+    Array.isArray(form.meals) &&
+    form.meals.every(isMealForm) &&
+    MEALS.every(({ id }) =>
+      (form.meals as MealForm[]).some((meal) => meal.id === id),
+    ) &&
+    mealsInvalidReason(value as MealsForm) === null
+  );
 };
 
 /** 動画一覧を取り直し、取得できなかった id を返す。まとめて動かして待ち時間を短くする */
@@ -210,6 +266,22 @@ export const savePreferencesAction = async (
   ) as unknown as PreferenceLists;
   try {
     await writePreferenceLists(checked);
+    return { type: "saved" };
+  } catch {
+    return { type: "error" };
+  }
+};
+
+/**
+ * 食事とジャンルの「保存する」から呼ばれ、preferences.json の genres と meals を書く
+ * ジャンル名を変えたときは、meals の参照も一緒に書き換える。ほかの項目は残す
+ */
+export const saveMealsAction = async (form: unknown): Promise<SaveResult> => {
+  if (!isMealsForm(form)) return { type: "error" };
+
+  try {
+    const { meals } = await readMealsData();
+    await writeMealsData(fromMealsForm(form, meals));
     return { type: "saved" };
   } catch {
     return { type: "error" };

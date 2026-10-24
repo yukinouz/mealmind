@@ -1,4 +1,5 @@
 import path from "node:path";
+import type { MealsData } from "@/utils/mealSettings";
 import { dataDir, inOrder, readJson, writeJsonSafely } from "./dataFiles";
 
 /** 好みのページで編集する、言葉の一覧 */
@@ -59,3 +60,16 @@ export const updatePreferencesFile = (patch: Record<string, unknown>) =>
 /** 好みのページで編集した言葉の一覧を書く */
 export const writePreferenceLists = (lists: PreferenceLists) =>
   updatePreferencesFile({ ...lists });
+
+/** 食事とジャンルのページで編集する genres と meals を読む。ないときは空 */
+export const readMealsData = async (): Promise<MealsData> => {
+  const file = await readPreferencesFile();
+  return {
+    genres: (file.genres ?? {}) as MealsData["genres"],
+    meals: (file.meals ?? {}) as MealsData["meals"],
+  };
+};
+
+/** genres と meals を書く。ほかの項目（使わない食材など）は残す */
+export const writeMealsData = ({ genres, meals }: MealsData) =>
+  updatePreferencesFile({ genres, meals });
