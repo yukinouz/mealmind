@@ -1,0 +1,89 @@
+@use "responsive";
+@use "variables";
+
+// 左のメニュー
+
+.side {
+  flex: 0 0 220px;
+}
+
+// スマホ幅の /settings では、代わりにリストのメニューを出す
+.pcOnly {
+  @include responsive.mq-max(md) {
+    display: none;
+  }
+}
+
+.sideList {
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(4);
+}
+
+.sideLink {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: variables.space(16);
+  border-radius: variables.$radius12;
+  color: variables.$color-text-sub;
+  font-size: 15px;
+  font-weight: 700;
+
+  &[aria-current="page"] {
+    background-color: variables.$color-orange100;
+    color: variables.$color-orange800;
+  }
+
+  // 選択中の項目と見分けられるよう、カーソルを乗せたときは文字の色だけを変える
+  @media (hover: hover) {
+    &:hover {
+      color: variables.$color-orange800;
+    }
+  }
+}
+
+// スマホ幅の /settings に出すリスト
+
+.list {
+  overflow: hidden;
+  border: 1px solid variables.$color-card-border;
+  border-radius: variables.$radius16;
+  background-color: variables.$color-white;
+}
+
+.listItem + .listItem {
+  border-top: 1px solid variables.$color-divider-light;
+}
+
+.listLink {
+  display: flex;
+  align-items: center;
+  column-gap: variables.space(12);
+  min-height: 64px;
+  padding: 14px variables.space(16);
+  color: variables.$color-black;
+}
+
+.listText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  row-gap: 2px;
+  min-width: 0;
+}
+
+.listLabel {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.listDesc {
+  color: variables.$color-text-sub;
+  font-size: 12px;
+}
+
+.listArrow {
+  flex: 0 0 auto;
+  color: variables.$color-arrow;
+}

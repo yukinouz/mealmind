@@ -1,0 +1,239 @@
+@use "settingsForm";
+@use "variables";
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sectionLead {
+  margin-top: variables.space(8);
+  color: variables.$color-text-sub;
+}
+
+.visuallyHidden {
+  @extend %settingsVisuallyHidden;
+}
+
+// 食事ごとの条件
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(12);
+  margin-top: variables.space(16);
+}
+
+.card {
+  @extend %settingsCard;
+
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
+.mealTitle {
+  display: flex;
+  align-items: center;
+}
+
+// 食事の色は、レシピカードの食事のラベルとそろえる
+.mealBadge {
+  padding: 2px variables.space(12);
+  border-radius: variables.$radius-pill;
+  font-size: 13px;
+  font-weight: 700;
+
+  &[data-meal="dinner"] {
+    background-color: variables.$color-brown100;
+    color: variables.$color-brown700;
+  }
+
+  &[data-meal="lunch"] {
+    background-color: variables.$color-green100;
+    color: variables.$color-green800;
+  }
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.legend {
+  margin-bottom: variables.space(8);
+  padding: 0;
+  color: variables.$color-text-sub;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: variables.space(8) 20px;
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  column-gap: 6px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+// リセットの CSS で input の見た目が消えているので、ブラウザ標準のラジオボタンに戻す
+.radio {
+  appearance: auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: variables.$color-orange500;
+}
+
+.genreToggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: variables.space(8) 20px;
+  margin: 0;
+  padding: variables.space(12) variables.space(16);
+  border: none;
+  border-radius: variables.$radius12;
+  background-color: variables.$color-background;
+}
+
+// 本物のチェックボックスは見えなくして、上に重ねる（押せる範囲と読み上げはそのまま）
+.checkbox {
+  position: absolute;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkBox {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid variables.$color-arrow;
+  border-radius: variables.$radius4;
+  background-color: variables.$color-white;
+  color: transparent;
+
+  .checkbox:checked + & {
+    border-color: variables.$color-orange500;
+    background-color: variables.$color-orange500;
+    color: variables.$color-white;
+  }
+
+  .checkbox:focus-visible + & {
+    outline: 2px solid variables.$color-orange500;
+    outline-offset: 1px;
+  }
+}
+
+.noGenre {
+  color: variables.$color-text-muted;
+  font-size: 12px;
+}
+
+.words {
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(8);
+}
+
+.wordsTitle {
+  color: variables.$color-text-sub;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+// ジャンル
+
+.genres {
+  margin-top: variables.space(48);
+}
+
+.genreCards {
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(16);
+  margin-top: variables.space(16);
+}
+
+.genreCard {
+  @extend %settingsCard;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(16);
+}
+
+.removeButton {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid variables.$color-pink300;
+  border-radius: 50%;
+  background-color: variables.$color-white;
+  color: variables.$color-pink800;
+  box-shadow: 0 1px 3px rgba(60, 30, 10, 0.12);
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+      background-color: variables.$color-pink100;
+    }
+  }
+}
+
+.nameField {
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(4);
+  max-width: 240px;
+}
+
+.nameLabel {
+  color: variables.$color-text-sub;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.nameInput {
+  @extend %settingsInput;
+
+  padding-inline: variables.space(12);
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.addGenre {
+  @extend %settingsPillButton;
+
+  display: flex;
+  align-items: center;
+  column-gap: variables.space(8);
+  margin-top: variables.space(16);
+  padding-inline: 20px;
+  border: 1px dashed variables.$color-border-dashed;
+  background-color: variables.$color-white;
+  color: variables.$color-orange800;
+}

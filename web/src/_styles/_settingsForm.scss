@@ -1,0 +1,67 @@
+// 設定のページで共通の、入力欄・ボタン・カードの見た目。@extend して使う
+@use "variables";
+
+%settingsInput {
+  height: 40px;
+  border: 1px solid variables.$color-border;
+  background-color: variables.$color-white;
+  color: variables.$color-black;
+
+  &::placeholder {
+    color: variables.$color-placeholder;
+  }
+
+  &:focus {
+    outline: 2px solid variables.$color-orange500;
+    outline-offset: 1px;
+  }
+}
+
+// リセットの CSS で button は横幅いっぱいになるので、中身の幅に戻す
+%settingsPillButton {
+  width: auto;
+  min-height: 44px;
+  border-radius: variables.$radius-pill;
+  font-size: 14px;
+  font-weight: 700;
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// 白い地の、項目ごとのカード
+%settingsCard {
+  padding: 20px variables.space(24);
+  border: 1px solid variables.$color-card-border;
+  border-radius: variables.$radius16;
+  background-color: variables.$color-white;
+}
+
+// 数を入れる欄（割合・出やすさ・日数）
+%settingsNumberInput {
+  @extend %settingsInput;
+
+  padding: 0 6px 0 10px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+}
+
+// 画面には出さず、読み上げにだけ伝える（入力欄のラベルなど）
+%settingsVisuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
