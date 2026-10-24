@@ -3,7 +3,7 @@ import styles from "./_styles/_saveBar.module.scss";
 /** 文言の色。muted は変更なし・保存中、dirty は保存できる変更あり、error は保存できない・失敗した */
 export type SaveBarTone = "muted" | "dirty" | "error";
 
-interface SaveBarProps {
+export interface SaveBarProps {
   message: string;
   tone: SaveBarTone;
   canDiscard: boolean;

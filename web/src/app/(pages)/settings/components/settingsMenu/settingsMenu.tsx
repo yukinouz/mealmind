@@ -21,19 +21,21 @@ const SettingsMenu = () => {
       aria-label="設定メニュー"
     >
       <ul className={styles.sideList}>
-        {SETTINGS_ITEMS.map(({ href, label }) => (
-          <li key={href}>
-            <Link
-              className={styles.sideLink}
-              href={href}
-              aria-current={
-                isCurrentSettingsItem(pathname, href) ? "page" : undefined
-              }
-            >
-              {label}
-            </Link>
-          </li>
-        ))}
+        {SETTINGS_ITEMS.map(({ href, label }) => {
+          const isCurrent = isCurrentSettingsItem(pathname, href);
+          return (
+            <li key={href}>
+              {/* 選択中の項目は、いまのページへのリンクにする。/settings で「チャンネル」を押しても、別のページへ移って編集中の値が消えないようにするため */}
+              <Link
+                className={styles.sideLink}
+                href={isCurrent ? pathname : href}
+                aria-current={isCurrent ? "page" : undefined}
+              >
+                {label}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );

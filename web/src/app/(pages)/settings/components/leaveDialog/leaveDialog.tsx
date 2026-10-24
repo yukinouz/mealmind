@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import styles from "./_styles/_leaveDialog.module.scss";
 
 /** 移ろうとしたリンクの行き先と、ダイアログに出すその名前 */
@@ -15,11 +15,11 @@ interface LeaveDialogProps {
   isDirty: boolean;
 }
 
-/** リンクの名前。文字がなければ、画像の代わりの文字（ロゴなど）を使う */
+/** リンクの名前。ブラウザと同じく aria-label を先に使い、なければ文字、それもなければ画像の代わりの文字（ロゴなど） */
 const labelOf = (link: HTMLAnchorElement): string =>
+  link.getAttribute("aria-label") ||
   link.textContent?.trim() ||
   link.querySelector("img")?.alt ||
-  link.getAttribute("aria-label") ||
   "別のページ";
 
 /**
@@ -80,7 +80,16 @@ const LeaveDialog = ({ isDirty }: LeaveDialogProps) => {
   const { target, stay } = useLeaveGuard(isDirty);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
+  const titleId = useId();
+  const descId = useId();
   const isOpen = target !== null;
+
+  /** 先に閉じてから移る。移り先の準備ができるまでの間に、もう一度押されないようにするため */
+  const leave = () => {
+    if (target === null) return;
+    stay();
+    router.push(target.href);
+  };
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -95,8 +104,8 @@ const LeaveDialog = ({ isDirty }: LeaveDialogProps) => {
       className={styles.dialog}
       ref={dialogRef}
       role="alertdialog"
-      aria-labelledby="leave-title"
-      aria-describedby="leave-desc"
+      aria-labelledby={titleId}
+      aria-describedby={descId}
       onCancel={(event) => {
         event.preventDefault();
         stay();
@@ -104,20 +113,14 @@ const LeaveDialog = ({ isDirty }: LeaveDialogProps) => {
       // Esc を続けて押すと、onCancel を止められずに閉じることがある。そのときも状態をそろえる
       onClose={stay}
     >
-      <h2 className={styles.title} id="leave-title">
+      <h2 className={styles.title} id={titleId}>
         変更が保存されていません
       </h2>
-      <p className={styles.text} id="leave-desc">
+      <p className={styles.text} id={descId}>
         このまま「{target?.label}」に移ると、このページの変更は取り消されます。
       </p>
       <div className={styles.actions}>
-        <button
-          className={styles.leave}
-          type="button"
-          onClick={() => {
-            if (target !== null) router.push(target.href);
-          }}
-        >
+        <button className={styles.leave} type="button" onClick={leave}>
           保存せずに移る
         </button>
         {/* Enter だけで変更が消えないよう、開いたときは「このページに残る」を選んでおく */}

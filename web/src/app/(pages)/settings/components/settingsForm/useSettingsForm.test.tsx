@@ -92,6 +92,57 @@ describe("保存バー", () => {
     expect(saveButton()).toBeEnabled();
   });
 
+  it("保存中は「保存中…」になり、押せない。保存中に編集した分は、保存のあとも未保存として残る", async () => {
+    const user = userEvent.setup();
+    let finishSave: (result: SaveResult) => void = () => undefined;
+    const save = vi.fn(
+      () =>
+        new Promise<SaveResult>((resolve) => {
+          finishSave = resolve;
+        }),
+    );
+    render(<Form save={save} />);
+
+    await user.type(input(), "焼き");
+    await user.click(saveButton());
+
+    const savingButton = screen.getByRole("button", { name: "保存中…" });
+    expect(savingButton).toBeDisabled();
+    expect(discardButton()).not.toBeInTheDocument();
+
+    await user.type(input(), "うどん");
+    finishSave({ type: "saved" });
+
+    expect(save).toHaveBeenCalledWith("鍋焼き");
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "未保存の変更があります",
+      ),
+    );
+    expect(saveButton()).toBeEnabled();
+  });
+
+  it("保存の結果に文言があれば、それを出す", async () => {
+    const user = userEvent.setup();
+    render(
+      <Form
+        save={vi.fn().mockResolvedValue({
+          type: "saved",
+          message: "保存して取得しました",
+        })}
+      />,
+    );
+
+    await user.type(input(), "焼き");
+    await user.click(saveButton());
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "保存して取得しました",
+      ),
+    );
+  });
+
   it("「変更を取り消す」で保存済みの値に戻る", async () => {
     const user = userEvent.setup();
     render(<Form save={vi.fn()} />);

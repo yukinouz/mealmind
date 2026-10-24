@@ -7,20 +7,29 @@ import { LeaveDialog } from "./leaveDialog";
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
-/** ダイアログと、ページの中のリンクを並べて描く */
-const renderPage = (isDirty: boolean) =>
-  render(
-    <>
-      <LeaveDialog isDirty={isDirty} />
-      <a href="/settings/suggest">提案のしかた</a>
-      <a href="/">
-        {/* biome-ignore lint/performance/noImgElement: ヘッダーのロゴの代わり。テストでは next/image の最適化はいらない */}
-        <img src="/logo.svg" alt="MealMind" />
-      </a>
-      <a href="/settings/channels">チャンネル</a>
-      <a href="https://www.youtube.com/@ryuji825">@ryuji825</a>
-    </>,
-  );
+/** ダイアログと、ページの中のリンクを並べたもの */
+const page = (isDirty: boolean) => (
+  <>
+    <LeaveDialog isDirty={isDirty} />
+    <a href="/settings/suggest">提案のしかた</a>
+    <a href="/">
+      {/* biome-ignore lint/performance/noImgElement: ヘッダーのロゴの代わり。テストでは next/image の最適化はいらない */}
+      <img src="/logo.svg" alt="MealMind" />
+    </a>
+    <a href="/settings/channels">チャンネル</a>
+    <a href="https://www.youtube.com/@ryuji825">@ryuji825</a>
+    <a href="/recipes" target="_blank" rel="noopener">
+      レシピ一覧（新しいタブ）
+    </a>
+    <a href="/recipes" aria-label="レシピ一覧">
+      <span>レシピ</span>
+      <span>作ると決めたもの</span>
+    </a>
+  </>
+);
+
+/** ページを描く */
+const renderPage = (isDirty: boolean) => render(page(isDirty));
 
 /** 確認のダイアログ。閉じているときは読み上げの対象外なので、hidden も含めて探す */
 const dialog = () => screen.getByRole("alertdialog", { hidden: true });
@@ -68,6 +77,24 @@ describe("未保存の変更があるとき", () => {
     expect(dialog()).toHaveTextContent("「MealMind」に移ると");
   });
 
+  it("aria-label があるリンクは、それを名前にする", () => {
+    renderPage(true);
+
+    clickLink("レシピ一覧");
+
+    expect(dialog()).toHaveTextContent("「レシピ一覧」に移ると");
+  });
+
+  it("Esc でダイアログを閉じ、移らない", () => {
+    renderPage(true);
+    clickLink("提案のしかた");
+
+    fireEvent(dialog(), new Event("cancel", { cancelable: true }));
+
+    expect(dialog()).not.toHaveAttribute("open");
+    expect(push).not.toHaveBeenCalled();
+  });
+
   it("「保存せずに移る」で行き先へ移る", async () => {
     const user = userEvent.setup();
     renderPage(true);
@@ -76,6 +103,8 @@ describe("未保存の変更があるとき", () => {
     await user.click(screen.getByRole("button", { name: "保存せずに移る" }));
 
     expect(push).toHaveBeenCalledWith("/settings/suggest");
+    // 移り先の準備ができるまでに、もう一度押されないよう先に閉じる
+    expect(dialog()).not.toHaveAttribute("open");
   });
 
   it("「このページに残る」でダイアログを閉じ、移らない", async () => {
@@ -95,6 +124,20 @@ describe("未保存の変更があるとき", () => {
     expect(clickLink("チャンネル")).toBe(false);
     expect(clickLink("@ryuji825")).toBe(false);
     expect(dialog()).not.toHaveAttribute("open");
+  });
+
+  it("新しいタブで開くリンクは止めない", () => {
+    renderPage(true);
+
+    expect(clickLink("レシピ一覧（新しいタブ）")).toBe(false);
+  });
+
+  it("保存して変更がなくなったら、もう止めない", () => {
+    const { rerender } = renderPage(true);
+
+    rerender(page(false));
+
+    expect(clickLink("提案のしかた")).toBe(false);
   });
 
   it("新しいタブで開く押し方（⌘ を押しながら）は止めない", () => {
