@@ -1,0 +1,67 @@
+@use "variables";
+
+.dialog {
+  width: calc(100% - 40px);
+  max-width: 420px;
+  margin: auto;
+  padding: 28px;
+  border: none;
+  border-radius: variables.$radius20;
+  background-color: variables.$color-white;
+  color: variables.$color-black;
+  box-shadow: 0 8px 24px rgba(60, 30, 10, 0.2);
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+    row-gap: variables.space(12);
+  }
+
+  &::backdrop {
+    background-color: rgba(31, 26, 23, 0.4);
+  }
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.text {
+  color: variables.$color-text-sub;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: variables.space(8);
+  margin-top: variables.space(12);
+}
+
+.leave,
+.stay {
+  min-height: 44px;
+  padding-inline: 20px;
+  border-radius: variables.$radius-pill;
+  font-size: 14px;
+  font-weight: 700;
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.leave {
+  border: 1px solid variables.$color-border;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+}
+
+.stay {
+  border: none;
+  background-color: variables.$color-orange500;
+  color: variables.$color-white;
+}

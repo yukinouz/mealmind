@@ -1,0 +1,77 @@
+@use "variables";
+
+// 長いページでも押せるよう、画面の下に貼りつける
+.bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: variables.space(12);
+  margin-top: variables.space(64);
+  padding: variables.space(16) 0 variables.space(24);
+  border-top: 1px solid variables.$color-divider;
+  background-color: variables.$color-background;
+}
+
+.message {
+  font-weight: 700;
+  color: variables.$color-text-sub;
+
+  &[data-tone="dirty"] {
+    color: variables.$color-orange800;
+  }
+
+  &[data-tone="error"] {
+    color: variables.$color-pink800;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: variables.space(8);
+}
+
+.discard,
+.save {
+  min-height: 44px;
+  border-radius: variables.$radius-pill;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.discard {
+  padding-inline: 20px;
+  border: 1px solid variables.$color-border;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.save {
+  min-width: 160px;
+  padding-inline: 28px;
+  border: none;
+  background-color: variables.$color-orange500;
+  color: variables.$color-white;
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  &:disabled {
+    background-color: variables.$color-card-border;
+    color: variables.$color-text-muted;
+    cursor: not-allowed;
+  }
+}
