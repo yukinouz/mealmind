@@ -36,6 +36,16 @@ const stringsOf = (value: unknown): string[] =>
     ? value.filter((item): item is string => typeof item === "string")
     : [];
 
+/** オブジェクトとして読む。手で編集して形が崩れていたら空 */
+const recordOf = (value: unknown): Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+
+/** 項目があれば文字列の一覧として読む。なければ項目ごと書かない */
+const listOf = (key: string, value: unknown) =>
+  value === undefined ? {} : { [key]: stringsOf(value) };
+
 /** 好みのページで編集する言葉の一覧を読む。ファイルや項目がないときは空 */
 export const readPreferenceLists = async (): Promise<PreferenceLists> => {
   const file = await readPreferencesFile();
@@ -65,8 +75,26 @@ export const writePreferenceLists = (lists: PreferenceLists) =>
 export const readMealsData = async (): Promise<MealsData> => {
   const file = await readPreferencesFile();
   return {
-    genres: (file.genres ?? {}) as MealsData["genres"],
-    meals: (file.meals ?? {}) as MealsData["meals"],
+    genres: Object.fromEntries(
+      Object.entries(recordOf(file.genres)).map(([name, keywords]) => [
+        name,
+        stringsOf(keywords),
+      ]),
+    ),
+    meals: Object.fromEntries(
+      Object.entries(recordOf(file.meals)).map(([id, entry]) => {
+        const meal = recordOf(entry);
+        return [
+          id,
+          {
+            ...meal,
+            ...listOf("onlyGenres", meal.onlyGenres),
+            ...listOf("avoidGenres", meal.avoidGenres),
+            ...listOf("avoidTitleKeywords", meal.avoidTitleKeywords),
+          },
+        ];
+      }),
+    ),
   };
 };
 

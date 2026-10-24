@@ -105,7 +105,7 @@ const MealCard = ({ meal, label, genres, onChange }: MealCardProps) => {
                     <path d="M5 12.5l4.5 4.5L19 7.5" />
                   </svg>
                 </span>
-                {genre.name || "（名前なし）"}
+                {genre.name.trim() || "名前なし"}
               </label>
             ))}
             {genres.length === 0 && (

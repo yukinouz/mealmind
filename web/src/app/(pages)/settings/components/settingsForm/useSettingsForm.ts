@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import type { SaveResult } from "@/actions/settings";
 import type { SaveBarProps, SaveBarTone } from "../saveBar/saveBar";
 
-/** 保存の結果。message は保存できたときに保存バーに出す文言（なければ「保存しました」） */
-export type SaveResult =
-  | { type: "saved"; message?: string }
-  | { type: "error" };
+// 保存の結果の形は、サーバーアクションと同じものを使う
+export type { SaveResult };
 
 /** 保存のようす。idle はまだ保存していない、saved は保存できた、error は保存できなかった */
 type SaveStatus =

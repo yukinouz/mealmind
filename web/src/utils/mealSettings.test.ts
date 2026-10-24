@@ -110,6 +110,33 @@ describe("fromMealsForm", () => {
   });
 });
 
+describe("fromMealsForm（画面で扱わない値）", () => {
+  it("夕食・昼食以外の食事からは、消したジャンルの参照を外す", () => {
+    const form = removeGenre(toMealsForm(DATA), "genre-0");
+
+    const data = fromMealsForm(form, {
+      ...DATA.meals,
+      brunch: { onlyGenres: ["麺類", "パン"], memo: "残す" },
+    });
+
+    expect(data.meals.brunch).toEqual({ onlyGenres: ["パン"], memo: "残す" });
+  });
+
+  it("onlyGenres と avoidGenres の両方があるときは、avoidGenres も残す", () => {
+    const meals = {
+      ...DATA.meals,
+      lunch: { onlyGenres: ["麺類"], avoidGenres: ["パン"] },
+    };
+    const form = toMealsForm({ genres: DATA.genres, meals });
+
+    expect(form.meals[1].mode).toBe("only");
+    expect(fromMealsForm(form, meals).meals.lunch).toEqual({
+      onlyGenres: ["麺類"],
+      avoidGenres: ["パン"],
+    });
+  });
+});
+
 describe("removeGenre", () => {
   it("ジャンルを消すと、食事の条件からも外す", () => {
     const form = removeGenre(toMealsForm(DATA), "genre-0");
@@ -148,7 +175,22 @@ describe("mealsInvalidReason", () => {
     form.meals[1].genreKeys = [];
 
     expect(mealsInvalidReason(form)).toBe(
-      "昼食の「選んだジャンルだけ」で、ジャンルを1つ以上選んでください",
+      "昼食の「選んだジャンルだけ」で、見分ける言葉があるジャンルを1つ以上選んでください",
     );
+  });
+
+  it("選んだジャンルに見分ける言葉が1つもないときも保存できない", () => {
+    const form = toMealsForm(DATA);
+    form.genres.push({ key: "new-1", name: "スープ", keywords: [] });
+    form.meals[1].genreKeys = ["new-1"];
+
+    expect(mealsInvalidReason(form)).toMatch(/^昼食の/);
+  });
+
+  it("いまないジャンルの key は数えない", () => {
+    const form = toMealsForm(DATA);
+    form.meals[1].genreKeys = ["genre-99"];
+
+    expect(mealsInvalidReason(form)).toMatch(/^昼食の/);
   });
 });

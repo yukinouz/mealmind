@@ -29,7 +29,10 @@ import {
 } from "@/utils/mealSettings";
 import { fromSuggestForm, isValidSuggestForm } from "@/utils/suggestSettings";
 
-export type SaveResult = { type: "saved" } | { type: "error" };
+/** 保存の結果。message は保存できたときに保存バーに出す文言（なければ「保存しました」） */
+export type SaveResult =
+  | { type: "saved"; message?: string }
+  | { type: "error" };
 
 export type LookupResult =
   | { type: "found"; channel: FoundChannel }
@@ -50,7 +53,7 @@ const isFilledString = (value: unknown): value is string =>
 const isWordList = (value: unknown): value is string[] =>
   Array.isArray(value) &&
   value.every(isFilledString) &&
-  new Set(value).size === value.length;
+  new Set(value.map((word) => word.trim())).size === value.length;
 
 /** 好みのページから届いた値か。4つの項目がどれも言葉の一覧 */
 const isPreferenceLists = (value: unknown): value is PreferenceLists => {

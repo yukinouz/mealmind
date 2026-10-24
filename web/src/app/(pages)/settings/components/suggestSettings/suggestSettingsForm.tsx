@@ -3,7 +3,11 @@
 import { useId } from "react";
 import { saveSuggestSettingsAction } from "@/actions/settings";
 import { clampInteger } from "@/utils/clampInteger";
-import { SUGGEST_LIMITS, type SuggestForm } from "@/utils/suggestSettings";
+import {
+  isValidSuggestForm,
+  SUGGEST_LIMITS,
+  type SuggestForm,
+} from "@/utils/suggestSettings";
 import { LeaveDialog } from "../leaveDialog/leaveDialog";
 import { SaveBar } from "../saveBar/saveBar";
 import { useSettingsForm } from "../settingsForm/useSettingsForm";
@@ -82,6 +86,11 @@ const SuggestSettingsForm = ({ initial }: SuggestSettingsFormProps) => {
   const form = useSettingsForm<SuggestForm>({
     initial,
     save: saveSuggestSettingsAction,
+    // 手で編集したファイルの値が範囲の外だと、そのままでは保存できないので理由を出す
+    invalidReason: (values) =>
+      isValidSuggestForm(values)
+        ? null
+        : "出やすさは 0〜100%、日数は 0〜365日の整数にすると保存できます",
   });
   const { draft, update } = form;
 

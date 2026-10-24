@@ -83,6 +83,29 @@ export const toMealsForm = ({ genres, meals }: MealsData): MealsForm => {
   };
 };
 
+/** いまあるジャンルの名前だけを残す。消したジャンルを参照したままだと、抽選スクリプトがエラーで止まるため */
+const existingNames = (
+  names: string[],
+  genreNameByKey: Map<string, string>,
+): string[] => {
+  const existing = new Set(genreNameByKey.values());
+  return names.filter((name) => existing.has(name));
+};
+
+/** 画面で扱わない食事（dinner・lunch 以外）の条件から、消した・名前を変えたジャンルを外す */
+const pruneMealEntry = (
+  entry: MealEntry,
+  genreNameByKey: Map<string, string>,
+): MealEntry => ({
+  ...entry,
+  ...(entry.onlyGenres === undefined
+    ? {}
+    : { onlyGenres: existingNames(entry.onlyGenres, genreNameByKey) }),
+  ...(entry.avoidGenres === undefined
+    ? {}
+    : { avoidGenres: existingNames(entry.avoidGenres, genreNameByKey) }),
+});
+
 /** 1つの食事の条件を、meals の1件にする。ほかの項目と、もともとあった avoidTitleKeywords の空の配列は残す */
 const toMealEntry = (
   meal: MealForm,
@@ -91,10 +114,17 @@ const toMealEntry = (
 ): MealEntry => {
   const { onlyGenres, avoidGenres, avoidTitleKeywords, ...rest } = saved;
   const names = meal.genreKeys.flatMap((key) => genreNameByKey.get(key) ?? []);
+  // 手で編集して onlyGenres と avoidGenres の両方があるときは、画面では onlyGenres を見せる
+  // 「選んだジャンルだけ」のまま保存するなら、画面に出ない avoidGenres も（いまあるジャンルだけ）残す
+  const keptAvoidGenres =
+    meal.mode === "only" && avoidGenres !== undefined
+      ? { avoidGenres: existingNames(avoidGenres, genreNameByKey) }
+      : {};
   return {
     ...rest,
     ...(meal.mode === "only" ? { onlyGenres: names } : {}),
     ...(meal.mode === "except" ? { avoidGenres: names } : {}),
+    ...keptAvoidGenres,
     ...(meal.keywords.length > 0 || avoidTitleKeywords !== undefined
       ? { avoidTitleKeywords: meal.keywords }
       : {}),
@@ -118,7 +148,12 @@ export const fromMealsForm = (
       form.genres.map(({ name, keywords }) => [name.trim(), keywords]),
     ),
     meals: {
-      ...savedMeals,
+      ...Object.fromEntries(
+        Object.entries(savedMeals).map(([id, entry]) => [
+          id,
+          pruneMealEntry(entry, genreNameByKey),
+        ]),
+      ),
       ...Object.fromEntries(
         form.meals.map((meal) => [
           meal.id,
@@ -138,6 +173,15 @@ export const removeGenre = (form: MealsForm, key: string): MealsForm => ({
   })),
 });
 
+/**
+ * 選んだジャンル（いまあるものだけ）の、見分ける言葉の数
+ * 抽選スクリプトは、onlyGenres の言葉が1つもないと絞り込みをしない（すべてのジャンルと同じになる）ため、0 なら保存させない
+ */
+const keywordCountOf = (meal: MealForm, genres: GenreForm[]): number =>
+  genres
+    .filter(({ key }) => meal.genreKeys.includes(key))
+    .reduce((sum, { keywords }) => sum + keywords.length, 0);
+
 /** 保存できない理由。保存できるなら null */
 export const mealsInvalidReason = (form: MealsForm): string | null => {
   const names = form.genres.map(({ name }) => name.trim());
@@ -150,11 +194,13 @@ export const mealsInvalidReason = (form: MealsForm): string | null => {
   const label = MEALS.find(({ id }) =>
     form.meals.some(
       (meal) =>
-        meal.id === id && meal.mode === "only" && meal.genreKeys.length === 0,
+        meal.id === id &&
+        meal.mode === "only" &&
+        keywordCountOf(meal, form.genres) === 0,
     ),
   )?.label;
   if (label !== undefined) {
-    return `${label}の「選んだジャンルだけ」で、ジャンルを1つ以上選んでください`;
+    return `${label}の「選んだジャンルだけ」で、見分ける言葉があるジャンルを1つ以上選んでください`;
   }
   return null;
 };

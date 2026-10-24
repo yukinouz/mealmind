@@ -94,4 +94,20 @@ describe("readMealsData / writeMealsData", () => {
   it("ファイルがなければ空", async () => {
     expect(await readMealsData()).toEqual({ genres: {}, meals: {} });
   });
+
+  it("手で編集して形が崩れた値は、言葉の一覧として読める分だけ読む", async () => {
+    await writeFile(
+      preferencesPath(),
+      JSON.stringify({
+        schemaVersion: 1,
+        genres: { 麺類: "パスタ", パン: ["食パン", 3] },
+        meals: { lunch: { onlyGenres: "麺類" }, dinner: [] },
+      }),
+    );
+
+    expect(await readMealsData()).toEqual({
+      genres: { 麺類: [], パン: ["食パン"] },
+      meals: { lunch: { onlyGenres: [] }, dinner: {} },
+    });
+  });
 });
