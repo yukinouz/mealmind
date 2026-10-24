@@ -10,7 +10,7 @@ import type {
   VideoCache,
 } from "@/lib/sources";
 import {
-  isTotalWeightValid,
+  channelsInvalidReason,
   TOTAL_WEIGHT,
   toSourceId,
   totalWeight,
@@ -24,7 +24,7 @@ import {
 } from "../settingsForm/useSettingsForm";
 import styles from "./_styles/_channelSettings.module.scss";
 import { ChannelAdder } from "./channelAdder";
-import { ChannelRow } from "./channelRow";
+import { ChannelRow, type FetchError } from "./channelRow";
 
 interface ChannelSettingsFormProps {
   initialChannels: ChannelWithVideos[];
@@ -96,6 +96,20 @@ const messagesOf = (channels: ChannelSetting[], saved: ChannelSetting[]) => {
   };
 };
 
+/**
+ * 行に出す取得のエラー。この画面で取得に失敗したら failed、動画一覧がない（以前に取得できなかった）なら missing
+ * missing も「取得できませんでした」と出し、「更新」で取り直せるようにする
+ */
+const fetchErrorOf = (
+  isNew: boolean,
+  videos: VideoCache | null,
+  hasFailed: boolean,
+): FetchError => {
+  if (isNew) return null;
+  if (hasFailed) return "failed";
+  return videos === null ? "missing" : null;
+};
+
 /** 一覧に出す値から、動画一覧の情報を外して編集する形にする */
 const toSetting = ({ videos: _, ...channel }: ChannelWithVideos) => channel;
 
@@ -149,10 +163,7 @@ const ChannelSettingsForm = ({ initialChannels }: ChannelSettingsFormProps) => {
   const form = useSettingsForm<ChannelSetting[]>({
     initial: initialChannels.map(toSetting),
     save,
-    invalidReason: (channels) =>
-      isTotalWeightValid(channels.map((channel) => channel.weight))
-        ? null
-        : "合計を 100% にすると保存できます",
+    invalidReason: channelsInvalidReason,
     messages: messagesOf,
     isLocked: isUpdating,
   });
@@ -165,7 +176,12 @@ const ChannelSettingsForm = ({ initialChannels }: ChannelSettingsFormProps) => {
   /** 動画一覧を取り直す。行の「更新」はそのチャンネルだけ、「すべて更新」は登録済みの全チャンネル */
   const updateVideos = async (ids: string[]) => {
     setUpdatingIds(ids);
-    const result = await updateVideosAction(ids);
+    // 通信が切れるなどして呼び出しそのものが失敗しても、「更新中…」のまま止まらないようにする
+    const result = await updateVideosAction(ids).catch(
+      () => ({ type: "error" }) as const,
+    );
+    setUpdatingIds([]);
+
     const failed = result.type === "done" ? result.failedIds : ids;
     if (result.type === "done") {
       setVideosById((current) => ({
@@ -177,7 +193,6 @@ const ChannelSettingsForm = ({ initialChannels }: ChannelSettingsFormProps) => {
       ...current.filter((id) => !ids.includes(id)),
       ...failed,
     ]);
-    setUpdatingIds([]);
   };
 
   /** 探して見つかったチャンネルを、追加予定として一覧の最後に加える。最初の1件は割合 100% から始める */
@@ -265,11 +280,11 @@ const ChannelSettingsForm = ({ initialChannels }: ChannelSettingsFormProps) => {
                     channel={channel}
                     isNew={isNew}
                     videos={videos}
-                    // 動画一覧がない（保存のときに取得できなかった）チャンネルも、取り直せるよう失敗として出す
-                    hasFetchError={
-                      !isNew &&
-                      (videos === null || failedIds.includes(channel.id))
-                    }
+                    fetchError={fetchErrorOf(
+                      isNew,
+                      videos,
+                      failedIds.includes(channel.id),
+                    )}
                     isUpdating={updatingIds.includes(channel.id)}
                     canUpdate={canUpdate}
                     onChange={(patch) => change(channel.id, patch)}

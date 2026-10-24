@@ -6,12 +6,15 @@ import type { ChannelSetting, VideoCache } from "@/lib/sources";
 import { clampWeight, videosNote } from "@/utils/channelSettings";
 import styles from "./_styles/_channelSettings.module.scss";
 
+/** 動画一覧の取得のエラー。failed はこの画面で失敗した、missing は動画一覧がない */
+export type FetchError = "failed" | "missing" | null;
+
 interface ChannelRowProps {
   channel: ChannelSetting;
   // まだ保存していない、追加予定のチャンネルか
   isNew: boolean;
   videos: VideoCache | null;
-  hasFetchError: boolean;
+  fetchError: FetchError;
   isUpdating: boolean;
   // 保存中や、ほかのチャンネルの更新中は「更新」を押せない
   canUpdate: boolean;
@@ -31,7 +34,7 @@ const ChannelRow = ({
   channel,
   isNew,
   videos,
-  hasFetchError,
+  fetchError,
   isUpdating,
   canUpdate,
   onChange,
@@ -61,8 +64,12 @@ const ChannelRow = ({
           {!isNew && videos !== null && (
             <span>{videosNote(videos.count, videos.fetchedAt)}</span>
           )}
-          {hasFetchError && (
-            <span className={styles.fetchError} role="alert">
+          {/* 開いた時点から出ているものは読み上げで割り込まず、この画面で失敗したときだけ知らせる */}
+          {fetchError !== null && (
+            <span
+              className={styles.fetchError}
+              role={fetchError === "failed" ? "alert" : undefined}
+            >
               取得できませんでした
             </span>
           )}

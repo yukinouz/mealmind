@@ -75,7 +75,9 @@ const videosPath = (id: string): string =>
 /** 動画一覧のキャッシュを消す。もうないときは何もしない */
 const removeVideoCache = async (id: string) => {
   await unlink(videosPath(id)).catch((error) => {
-    if (error.code !== "ENOENT") throw error;
+    if (error.code === "ENOENT") return;
+    // sources.json は書けているので、保存は失敗にしない。残ったキャッシュは抽選で使われない（sources.json にないため）
+    console.error(`動画一覧のキャッシュを消せませんでした（${id}）:`, error);
   });
 };
 

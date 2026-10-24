@@ -14,12 +14,11 @@ import {
 } from "@/lib/preferences";
 import { writeSuggestSettings } from "@/lib/settings";
 import {
-  type ChannelSetting,
   type ChannelWithVideos,
   readChannelSettings,
   writeChannelSettings,
 } from "@/lib/sources";
-import { isTotalWeightValid, TOTAL_WEIGHT } from "@/utils/channelSettings";
+import { isValidChannelSettings } from "@/utils/channelSettings";
 import {
   fromMealsForm,
   type GenreForm,
@@ -43,43 +42,9 @@ export type VideosResult =
 
 // 入力欄の長さの上限。URL かハンドルなので、これより長いものは探さない
 const MAX_QUERY_LENGTH = 200;
-// id は data/cache/videos-<id>.json のファイル名とレシピ一覧の URL にも使うので、使える文字を絞る
-const SOURCE_ID_PATTERN = /^[a-z0-9-]+$/;
-const CHANNEL_ID_PATTERN = /^UC[\w-]+$/;
-
 /** 空でない文字列か */
 const isFilledString = (value: unknown): value is string =>
   typeof value === "string" && value.trim() !== "";
-
-/** サーバーアクションは画面の外からも呼べるので、届いたチャンネルの形を確かめる */
-const isChannelSetting = (value: unknown): value is ChannelSetting => {
-  if (typeof value !== "object" || value === null) return false;
-
-  const channel = value as Record<string, unknown>;
-  return (
-    typeof channel.id === "string" &&
-    SOURCE_ID_PATTERN.test(channel.id) &&
-    isFilledString(channel.name) &&
-    isFilledString(channel.shortName) &&
-    (channel.handle === null || isFilledString(channel.handle)) &&
-    typeof channel.channelId === "string" &&
-    CHANNEL_ID_PATTERN.test(channel.channelId) &&
-    Number.isInteger(channel.weight) &&
-    (channel.weight as number) >= 0 &&
-    (channel.weight as number) <= TOTAL_WEIGHT
-  );
-};
-
-/** 保存できるチャンネルの一覧か。形・id の重なり・割合の合計を確かめる */
-const isValidChannels = (value: unknown): value is ChannelSetting[] => {
-  if (!Array.isArray(value) || !value.every(isChannelSetting)) return false;
-
-  const ids = value.map((channel) => channel.id);
-  return (
-    new Set(ids).size === ids.length &&
-    isTotalWeightValid(value.map((channel) => channel.weight))
-  );
-};
 
 /** 言葉の一覧か。空の言葉と、重なった言葉は入れない */
 const isWordList = (value: unknown): value is string[] =>
@@ -179,7 +144,8 @@ export const lookupChannelAction = async (
     if (registeredIds.includes(found.channelId)) {
       return {
         type: "error",
-        message: "このチャンネルはすでに登録されています",
+        message:
+          "このチャンネルは登録済みです（一覧から外したチャンネルを追加し直すときは、先に保存してください）",
       };
     }
     return { type: "found", channel: found };
@@ -199,7 +165,7 @@ export const lookupChannelAction = async (
 export const saveChannelsAction = async (
   channels: unknown,
 ): Promise<VideosResult> => {
-  if (!isValidChannels(channels)) return { type: "error" };
+  if (!isValidChannelSettings(channels)) return { type: "error" };
 
   // 余計な項目まで書かないよう、確かめた項目だけで作り直す
   const checked = channels.map(

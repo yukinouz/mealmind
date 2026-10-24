@@ -1,3 +1,4 @@
+import type { ChannelSetting } from "@/lib/sources";
 import { clampInteger } from "./clampInteger";
 import { toLocalDate } from "./localDate";
 
@@ -52,3 +53,59 @@ export const clampWeight = (value: string): number =>
 /** 動画一覧の件数と取得日（例：1240件(2026/10/20)）。日付は手元の時刻で数える */
 export const videosNote = (count: number, fetchedAt: string): string =>
   `${count}件(${toLocalDate(new Date(fetchedAt)).replaceAll("-", "/")})`;
+
+// id は data/cache/videos-<id>.json のファイル名とレシピ一覧の URL にも使うので、使える文字を絞る（レシピ一覧の絞り込みと同じ）
+const SOURCE_ID_PATTERN = /^[a-z0-9-]+$/i;
+const CHANNEL_ID_PATTERN = /^UC[\w-]+$/;
+const HANDLE_PATTERN = /^@\S{1,100}$/;
+
+/** 空でない文字列か */
+const isFilledString = (value: unknown): value is string =>
+  typeof value === "string" && value.trim() !== "";
+
+/** 届いたチャンネルの形を確かめる（サーバーアクションは画面の外からも呼べるため） */
+const isChannelSettingShape = (value: unknown): value is ChannelSetting => {
+  if (typeof value !== "object" || value === null) return false;
+
+  const channel = value as Record<string, unknown>;
+  return (
+    typeof channel.id === "string" &&
+    SOURCE_ID_PATTERN.test(channel.id) &&
+    isFilledString(channel.name) &&
+    typeof channel.shortName === "string" &&
+    (channel.handle === null ||
+      (typeof channel.handle === "string" &&
+        HANDLE_PATTERN.test(channel.handle))) &&
+    typeof channel.channelId === "string" &&
+    CHANNEL_ID_PATTERN.test(channel.channelId) &&
+    Number.isInteger(channel.weight) &&
+    (channel.weight as number) >= 0 &&
+    (channel.weight as number) <= TOTAL_WEIGHT
+  );
+};
+
+/** 変更があっても保存できない理由。保存できるなら null */
+export const channelsInvalidReason = (
+  channels: ChannelSetting[],
+): string | null => {
+  if (channels.some((channel) => channel.shortName.trim() === "")) {
+    return "表示名が空のチャンネルがあります";
+  }
+  if (!isTotalWeightValid(channels.map((channel) => channel.weight))) {
+    return "合計を 100% にすると保存できます";
+  }
+  return null;
+};
+
+/** 保存できるチャンネルの一覧か。形・id の重なり・保存できない理由がないことを確かめる */
+export const isValidChannelSettings = (
+  value: unknown,
+): value is ChannelSetting[] => {
+  if (!Array.isArray(value) || !value.every(isChannelSettingShape)) {
+    return false;
+  }
+  const ids = value.map((channel) => channel.id);
+  return (
+    new Set(ids).size === ids.length && channelsInvalidReason(value) === null
+  );
+};
