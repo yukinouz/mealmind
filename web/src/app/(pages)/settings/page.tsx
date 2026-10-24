@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import mediaDisplay from "@/_styles/_mediaDisplay.module.scss";
 import { ChannelSettings } from "./components/channelSettings/channelSettings";
-import { SettingsMenu } from "./components/settingsMenu/settingsMenu";
+import { SettingsListMenu } from "./components/settingsMenu/settingsListMenu";
 
 export const metadata: Metadata = {
   title: "設定",
@@ -12,7 +12,7 @@ export default function SettingsPage() {
   return (
     <>
       <div className={mediaDisplay.spShow}>
-        <SettingsMenu variant="list" />
+        <SettingsListMenu />
       </div>
       <div className={mediaDisplay.pcShow}>
         <ChannelSettings />
