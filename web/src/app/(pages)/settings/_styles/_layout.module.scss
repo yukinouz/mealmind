@@ -1,0 +1,14 @@
+@use "variables";
+
+// 幅が足りないときは、メニューの下にページが回り込む
+.body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: variables.space(32) variables.space(48);
+}
+
+.content {
+  flex: 999 1 560px;
+  min-width: 0;
+}

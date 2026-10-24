@@ -7,6 +7,7 @@ import styles from "./_styles/_gnav.module.scss";
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "トップ" },
   { href: "/recipes", label: "レシピ一覧" },
+  { href: "/settings", label: "設定" },
 ];
 
 interface NavItem {
