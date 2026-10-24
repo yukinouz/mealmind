@@ -62,7 +62,11 @@ const MealCard = ({ meal, label, genres, onChange }: MealCardProps) => {
       </h4>
 
       <fieldset className={styles.fieldset}>
-        <legend className={styles.legend}>提案するジャンル</legend>
+        <legend className={styles.legend}>
+          {/* 2つの食事のまとまりを読み上げで見分けられるよう、食事の名前を添える */}
+          <span className={styles.visuallyHidden}>{label}で</span>
+          提案するジャンル
+        </legend>
         <div className={styles.modes}>
           {MODES.map((mode) => (
             <label className={styles.choice} key={mode.id}>

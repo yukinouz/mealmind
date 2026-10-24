@@ -87,7 +87,9 @@
   cursor: pointer;
 }
 
+// リセットの CSS で input の見た目が消えているので、ブラウザ標準のラジオボタンに戻す
 .radio {
+  appearance: auto;
   width: 18px;
   height: 18px;
   margin: 0;

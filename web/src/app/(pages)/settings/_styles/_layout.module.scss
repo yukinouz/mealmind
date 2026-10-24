@@ -12,3 +12,8 @@
   flex: 999 1 560px;
   min-width: 0;
 }
+
+// 下に貼りつく保存バーの裏に、キーボードで選んだ入力欄が隠れないようにする
+:global(html):has(.body) {
+  scroll-padding-bottom: 120px;
+}
