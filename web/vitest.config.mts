@@ -12,8 +12,9 @@ export default defineConfig({
     env: {
       // 日時の結果が実行する PC の時差に左右されないよう、日本時間にそろえる
       TZ: "Asia/Tokyo",
-      // vi.stubEnv を忘れたテストが data/personal/ に触れないよう、初期値を存在しない場所にしておく
+      // vi.stubEnv を忘れたテストが data/personal/・data/cache/ に触れないよう、初期値を存在しない場所にしておく
       MEALMIND_DATA_DIR: path.join(os.tmpdir(), "mealmind-test-unset"),
+      MEALMIND_CACHE_DIR: path.join(os.tmpdir(), "mealmind-test-unset-cache"),
     },
     // 単体テストは対象のファイルと同じディレクトリに置く。画面部品のテスト（.tsx）だけブラウザの代わりの jsdom で動かす
     projects: [

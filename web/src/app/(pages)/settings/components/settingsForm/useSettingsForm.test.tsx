@@ -56,7 +56,7 @@ describe("保存バー", () => {
 
     await user.click(saveButton());
 
-    expect(save).toHaveBeenCalledWith("鍋焼き");
+    expect(save).toHaveBeenCalledWith("鍋焼き", "鍋");
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent("保存しました"),
     );
@@ -113,7 +113,7 @@ describe("保存バー", () => {
     await user.type(input(), "うどん");
     finishSave({ type: "saved" });
 
-    expect(save).toHaveBeenCalledWith("鍋焼き");
+    expect(save).toHaveBeenCalledWith("鍋焼き", "鍋");
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent(
         "未保存の変更があります",

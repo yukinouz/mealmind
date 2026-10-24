@@ -12,8 +12,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 readonly ROOT_DIR
-readonly SOURCES_FILE="$ROOT_DIR/data/personal/sources.json"
-readonly CACHE_DIR="$ROOT_DIR/data/cache"
+# データの場所は、環境変数で変えられる（Web アプリの確認で、本物の個人データに触れないため）
+readonly SOURCES_FILE="${MEALMIND_DATA_DIR:-$ROOT_DIR/data/personal}/sources.json"
+readonly CACHE_DIR="${MEALMIND_CACHE_DIR:-$ROOT_DIR/data/cache}"
 readonly PLAYLIST_API_URL="https://www.googleapis.com/youtube/v3/playlistItems"
 readonly VIDEOS_API_URL="https://www.googleapis.com/youtube/v3/videos"
 
@@ -37,7 +38,7 @@ fi
 # sources.json からチャンネルIDを探す
 channel_id="$(jq -r --arg id "$source_id" \
   '.sources[] | select(.id == $id and .type == "youtube") | .channelId' "$SOURCES_FILE")"
-[[ -z "$channel_id" ]] && fail "YouTube の提案元 '$source_id' が data/personal/sources.json に見つかりません"
+[[ -z "$channel_id" ]] && fail "YouTube の提案元 '$source_id' が ${SOURCES_FILE} に見つかりません"
 
 # API を呼び出して結果をファイルに保存する。エラーなら終了する
 # 使い方: call_api <URL> <保存先> <説明> [curl の引数 ...]

@@ -22,9 +22,9 @@
 set -euo pipefail
 
 readonly ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-readonly DATA_DIR="$ROOT_DIR/data"
-readonly CACHE_DIR="$DATA_DIR/cache"
-readonly PERSONAL_DIR="$DATA_DIR/personal"
+# データの場所は、環境変数で変えられる（Web アプリの確認で、本物の個人データに触れないため）
+readonly CACHE_DIR="${MEALMIND_CACHE_DIR:-$ROOT_DIR/data/cache}"
+readonly PERSONAL_DIR="${MEALMIND_DATA_DIR:-$ROOT_DIR/data/personal}"
 
 # 引数をキーワードとスキップ対象に分ける
 keywords=()

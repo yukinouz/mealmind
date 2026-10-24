@@ -1,0 +1,355 @@
+@use "settingsForm";
+@use "variables";
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sectionLead {
+  margin-top: variables.space(8);
+  color: variables.$color-text-sub;
+}
+
+.visuallyHidden {
+  @extend %settingsVisuallyHidden;
+}
+
+// 登録しているチャンネル
+
+.listHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: variables.space(12);
+}
+
+.listHeading {
+  display: flex;
+  align-items: baseline;
+  column-gap: variables.space(12);
+}
+
+.count {
+  color: variables.$color-text-sub;
+}
+
+.updateAllButton {
+  @extend %settingsPillButton;
+
+  display: flex;
+  align-items: center;
+  column-gap: 6px;
+  min-height: 38px;
+  padding-inline: variables.space(16);
+  border: 1px solid variables.$color-border;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+}
+
+.empty {
+  margin-top: variables.space(16);
+  padding: variables.space(40) 20px;
+  border-radius: variables.$radius16;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+  text-align: center;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(16);
+  margin-top: variables.space(16);
+}
+
+.row {
+  @extend %settingsCard;
+
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.space(16) variables.space(24);
+}
+
+// 追加予定（まだ保存していない）チャンネル
+.isNew {
+  border-color: variables.$color-orange500;
+}
+
+.rowInfo {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  row-gap: 2px;
+  min-width: 0;
+}
+
+.rowTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.space(8);
+}
+
+.rowName {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.newBadge {
+  padding: 2px 10px;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-orange100;
+  color: variables.$color-orange800;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rowHandle {
+  align-self: flex-start;
+  color: variables.$color-link;
+  font-size: 13px;
+  text-decoration: underline;
+
+  @media (hover: hover) {
+    &:hover {
+      color: variables.$color-link-hover;
+    }
+  }
+}
+
+.rowVideos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.space(8);
+  color: variables.$color-text-muted;
+  font-size: 12px;
+}
+
+.fetchError {
+  color: variables.$color-pink800;
+  font-weight: 700;
+}
+
+.updateLink {
+  width: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: variables.$color-link;
+  font-size: 12px;
+  text-decoration: underline;
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+      color: variables.$color-link-hover;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.shortName {
+  display: flex;
+  flex: 0 1 180px;
+  flex-direction: column;
+  row-gap: variables.space(4);
+}
+
+.weight {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  row-gap: variables.space(4);
+}
+
+.fieldLabel {
+  color: variables.$color-text-sub;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.textInput {
+  @extend %settingsInput;
+
+  padding-inline: variables.space(12);
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.weightField {
+  display: flex;
+  align-items: center;
+  column-gap: variables.space(4);
+  font-weight: 700;
+}
+
+.weightInput {
+  @extend %settingsNumberInput;
+
+  width: 64px;
+}
+
+.removeButton {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid variables.$color-pink300;
+  border-radius: 50%;
+  background-color: variables.$color-white;
+  color: variables.$color-pink800;
+  box-shadow: 0 1px 3px rgba(60, 30, 10, 0.12);
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+      background-color: variables.$color-pink100;
+    }
+  }
+}
+
+// 割合の合計
+
+.total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.space(12) 20px;
+  margin-top: variables.space(16);
+  padding: variables.space(16) variables.space(24);
+  border-radius: variables.$radius16;
+  background-color: variables.$color-pink100;
+  color: variables.$color-pink800;
+}
+
+.totalValue {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.totalBar {
+  flex: 1 1 200px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-white;
+}
+
+.totalBarFill {
+  height: 100%;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-pink600;
+}
+
+.totalMessage {
+  font-weight: 700;
+}
+
+.isOk {
+  background-color: variables.$color-green100;
+  color: variables.$color-green800;
+
+  .totalBarFill {
+    background-color: variables.$color-green600;
+  }
+}
+
+// チャンネルを追加
+
+.adder {
+  margin-top: variables.space(48);
+}
+
+.lookupForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: variables.space(12);
+  margin-top: variables.space(16);
+}
+
+.queryInput {
+  @extend %settingsInput;
+
+  flex: 1 1 320px;
+  min-width: 0;
+  height: 44px;
+  padding-inline: variables.space(16);
+  border-radius: variables.$radius-pill;
+  font-size: 15px;
+}
+
+.lookupButton {
+  @extend %settingsPillButton;
+
+  padding-inline: variables.space(24);
+  border: 1px solid variables.$color-orange500;
+  background-color: variables.$color-white;
+  color: variables.$color-orange800;
+}
+
+.lookupError {
+  margin-top: variables.space(12);
+  color: variables.$color-pink800;
+  font-weight: 700;
+}
+
+.candidate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.space(16) variables.space(24);
+  margin-top: variables.space(16);
+  padding: 20px variables.space(24);
+  border-radius: variables.$radius16;
+  background-color: variables.$color-orange100;
+}
+
+.candidateInfo {
+  display: flex;
+  flex: 1 1 300px;
+  flex-direction: column;
+  row-gap: 2px;
+  min-width: 0;
+}
+
+.candidateHandle {
+  color: variables.$color-text-sub;
+  font-size: 13px;
+}
+
+.candidateActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: variables.space(8);
+}
+
+.cancelButton {
+  @extend %settingsPillButton;
+
+  padding-inline: 20px;
+  border: 1px solid variables.$color-border;
+  background-color: variables.$color-white;
+  color: variables.$color-text-sub;
+}
+
+.addButton {
+  @extend %settingsPillButton;
+
+  padding-inline: variables.space(24);
+  border: none;
+  background-color: variables.$color-orange500;
+  color: variables.$color-white;
+}
