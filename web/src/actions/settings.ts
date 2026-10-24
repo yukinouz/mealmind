@@ -5,6 +5,11 @@ import {
   fetchVideos,
   lookupChannel,
 } from "@/lib/channelScripts";
+import {
+  PREFERENCE_KEYS,
+  type PreferenceLists,
+  writePreferenceLists,
+} from "@/lib/preferences";
 import { writeSuggestSettings } from "@/lib/settings";
 import {
   type ChannelSetting,
@@ -64,6 +69,20 @@ const isValidChannels = (value: unknown): value is ChannelSetting[] => {
     new Set(ids).size === ids.length &&
     isTotalWeightValid(value.map((channel) => channel.weight))
   );
+};
+
+/** 言葉の一覧か。空の言葉と、重なった言葉は入れない */
+const isWordList = (value: unknown): value is string[] =>
+  Array.isArray(value) &&
+  value.every(isFilledString) &&
+  new Set(value).size === value.length;
+
+/** 好みのページから届いた値か。4つの項目がどれも言葉の一覧 */
+const isPreferenceLists = (value: unknown): value is PreferenceLists => {
+  if (typeof value !== "object" || value === null) return false;
+
+  const lists = value as Record<string, unknown>;
+  return PREFERENCE_KEYS.every((key) => isWordList(lists[key]));
 };
 
 /** 動画一覧を取り直し、取得できなかった id を返す。まとめて動かして待ち時間を短くする */
@@ -173,6 +192,24 @@ export const saveSuggestSettingsAction = async (
   const { chosen, favorite, days } = form;
   try {
     await writeSuggestSettings(fromSuggestForm({ chosen, favorite, days }));
+    return { type: "saved" };
+  } catch {
+    return { type: "error" };
+  }
+};
+
+/** 好みの「保存する」から呼ばれ、preferences.json の4つの項目を書く。genres・meals はそのまま残す */
+export const savePreferencesAction = async (
+  lists: unknown,
+): Promise<SaveResult> => {
+  if (!isPreferenceLists(lists)) return { type: "error" };
+
+  // 余計な項目まで書かないよう、確かめた項目だけで作り直す
+  const checked = Object.fromEntries(
+    PREFERENCE_KEYS.map((key) => [key, lists[key].map((word) => word.trim())]),
+  ) as unknown as PreferenceLists;
+  try {
+    await writePreferenceLists(checked);
     return { type: "saved" };
   } catch {
     return { type: "error" };

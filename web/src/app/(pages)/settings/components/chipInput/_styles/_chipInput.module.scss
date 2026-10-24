@@ -1,0 +1,83 @@
+@use "settingsForm";
+@use "variables";
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: variables.space(8);
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  column-gap: 2px;
+  height: 28px;
+  padding: 0 2px 0 10px;
+  border-radius: variables.$radius-pill;
+  background-color: variables.$color-orange100;
+  color: variables.$color-orange900;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: variables.$color-orange800;
+
+  @media (hover: hover) {
+    &:hover {
+      cursor: pointer;
+      background-color: variables.$color-brown100;
+    }
+  }
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  color: variables.$color-text-muted;
+  font-size: 12px;
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: variables.space(8);
+  margin-top: variables.space(16);
+
+  &.isCompact {
+    margin-top: variables.space(8);
+  }
+}
+
+.visuallyHidden {
+  @extend %settingsVisuallyHidden;
+}
+
+.input {
+  @extend %settingsInput;
+
+  flex: 0 1 280px;
+  min-width: 0;
+  padding-inline: 14px;
+  border-radius: variables.$radius-pill;
+  font-size: 14px;
+}
+
+.addButton {
+  @extend %settingsPillButton;
+
+  min-height: 40px;
+  padding-inline: 20px;
+  border: 1px solid variables.$color-orange500;
+  background-color: variables.$color-white;
+  color: variables.$color-orange800;
+}

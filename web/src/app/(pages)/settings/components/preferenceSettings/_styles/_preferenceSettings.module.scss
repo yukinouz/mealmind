@@ -1,0 +1,26 @@
+@use "settingsForm";
+@use "variables";
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  row-gap: variables.space(12);
+}
+
+.field {
+  @extend %settingsCard;
+}
+
+.fieldTitle {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.fieldHelp {
+  margin-top: variables.space(4);
+  color: variables.$color-text-sub;
+}
+
+.chips {
+  margin-top: variables.space(16);
+}
